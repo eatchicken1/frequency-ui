@@ -86,8 +86,18 @@ body {
   to { opacity: 1; }
 }
 
-.fade-in {
+.fade-in, .animate-fadeIn {
   animation: fadeIn 0.5s ease-in;
+}
+
+/* 慢脉动动画 */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite;
 }
 
 /* 滑动动画 */

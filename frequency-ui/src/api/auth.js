@@ -1,5 +1,24 @@
 import request from './request';
 
+// 注册方法
+export const register = async (username, password, email) => {
+    // 模拟注册 - 用于测试，实际环境请删除
+    if (import.meta.env.DEV) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({ data: { message: '注册成功' } });
+            }, 500);
+        });
+    }
+    
+    // 真实注册逻辑
+    return request.post('/auth/register', {
+        username,
+        password,
+        email
+    });
+};
+
 // 登录方法
 export const login = async (username, password) => {
     // 模拟登录 - 用于测试，实际环境请删除

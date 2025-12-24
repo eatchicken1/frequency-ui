@@ -1,296 +1,219 @@
 <template>
-  <div class="login-container">
-    <!-- 装饰性光环 -->
-    <div class="neon-circle" :class="schoolColor"></div>
-    
-    <h1 class="title">FREQUENCY</h1>
-    <h2 class="slogan">Let our Echoes meet first.</h2>
-
-    <div class="form-box">
-      <!-- 绑定表单数据 -->
-      <input 
-        v-model="form.username" 
-        type="text" 
-        placeholder="School ID / Email" 
-        class="cyber-input" 
-        @keyup.enter="handleLogin"
-        @input="detectSchool"
-      />
-      <input 
-        v-model="form.password" 
-        type="password" 
-        placeholder="Password" 
-        class="cyber-input" 
-        @keyup.enter="handleLogin"
-      />
+  <div class="min-h-screen flex overflow-hidden">
+    <!-- 左侧渐变区域 -->
+    <div class="hidden md:flex md:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700">
+      <!-- 动态波形效果 -->
+      <div class="absolute inset-0 overflow-hidden opacity-20">
+        <div class="absolute top-0 left-0 right-0 h-full flex items-center justify-center">
+          <svg viewBox="0 0 1200 800" class="w-full h-full" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+                <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0.1" />
+                <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.3" />
+              </linearGradient>
+            </defs>
+            <!-- 主波形 -->
+            <path d="M0,400 C300,300 300,500 600,400 C900,300 900,500 1200,400 L1200,800 L0,800 Z" fill="url(#waveGradient)" />
+            <!-- 高频波形装饰 -->
+            <path d="M0,350 Q100,380 200,350 T400,350 T600,350 T800,350 T1000,350 T1200,350 L1200,355 L0,355 Z" fill="white" opacity="0.4" />
+            <path d="M0,450 Q100,480 200,450 T400,450 T600,450 T800,450 T1000,450 T1200,450 L1200,455 L0,455 Z" fill="white" opacity="0.4" />
+          </svg>
+        </div>
+      </div>
       
-      <button @click="handleLogin" class="cyber-btn" :disabled="loading">
-        <span v-if="!loading">CONNECT</span>
-        <span v-else>SYNCING...</span>
-      </button>
+      <!-- 左侧品牌内容 -->
+      <div class="relative z-10 flex flex-col justify-center items-center p-12 text-white text-center">
+        <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-8 shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-12 h-12 animate-pulse">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9l-1.5-1.5m0 0L12 10.5m3.75 3.75L12 18m-3.75-3.75l1.5-1.5m0 0L12 13.5M9.75 9.75l1.5-1.5M14.25 14.25l1.5-1.5M9.75 14.25l1.5 1.5M14.25 9.75l1.5 1.5" />
+          </svg>
+        </div>
+        
+        <h1 class="text-6xl font-extrabold mb-4 tracking-tight">FREQUENCY</h1>
+        <h2 class="text-4xl font-semibold mb-6 text-white/90">同频</h2>
+        <p class="text-2xl mb-8 max-w-md text-white/90">AI 高校社交引力场</p>
+        <p class="text-lg max-w-md text-white/80 leading-relaxed">在这里，找到属于你的高校同频者，开启全新的社交体验</p>
+        
+        <!-- 装饰性频率线 -->
+        <div class="mt-12 flex space-x-2">
+          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 0ms;"></div>
+          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 100ms;"></div>
+          <div class="w-12 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 200ms;"></div>
+          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 300ms;"></div>
+          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 400ms;"></div>
+        </div>
+      </div>
     </div>
     
-    <!-- 学校徽章预览 -->
-    <div class="school-badge" v-if="schoolName">
-      <span class="badge-label">{{ schoolName }}</span>
+    <!-- 右侧登录表单区域 -->
+    <div class="w-full md:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+      <div class="w-full max-w-md">
+        <!-- 移动端Logo -->
+        <div class="md:hidden flex items-center justify-center mb-10">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-8 h-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9l-1.5-1.5m0 0L12 10.5m3.75 3.75L12 18m-3.75-3.75l1.5-1.5m0 0L12 13.5M9.75 9.75l1.5-1.5M14.25 14.25l1.5-1.5M9.75 14.25l1.5 1.5M14.25 9.75l1.5 1.5" />
+            </svg>
+          </div>
+          <h1 class="ml-3 text-3xl font-bold text-gray-900">FREQUENCY</h1>
+        </div>
+        
+        <!-- 表单容器 -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300">
+          <div class="p-10">
+            <div class="text-center mb-10">
+              <h3 class="text-3xl font-bold text-gray-900 mb-2">{{ isRegisterMode ? '创建账号' : '登录' }}</h3>
+              <p class="text-sm text-gray-500">{{ isRegisterMode ? '加入 Frequency，开始同频社交' : '欢迎回来，请登录您的账号' }}</p>
+            </div>
+            
+            <form class="space-y-6">
+              <!-- 用户名输入框 -->
+              <div class="relative group">
+                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                </div>
+                <input 
+                  v-model="form.username" 
+                  type="text" 
+                  class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 text-gray-900 placeholder-gray-400 hover:border-gray-300 hover:shadow-sm"
+                  placeholder="学号 / 用户名"
+                />
+              </div>
+              
+              <!-- 注册模式下显示邮箱输入 -->
+              <div v-if="isRegisterMode" class="relative group">
+                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                </div>
+                <input 
+                  v-model="form.email" 
+                  type="email" 
+                  class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 text-gray-900 placeholder-gray-400 hover:border-gray-300 hover:shadow-sm"
+                  placeholder="邮箱"
+                />
+              </div>
+              
+              <!-- 密码输入框 -->
+              <div class="relative group">
+                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                  </svg>
+                </div>
+                <input 
+                  v-model="form.password" 
+                  type="password" 
+                  class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 text-gray-900 placeholder-gray-400 hover:border-gray-300 hover:shadow-sm"
+                  placeholder="密码"
+                />
+              </div>
+              
+              <!-- 提交按钮 -->
+              <button 
+                @click.prevent="isRegisterMode ? handleRegister : handleLogin" 
+                :disabled="loading"
+                class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-3 rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                <span v-if="!loading">{{ isRegisterMode ? '完成注册' : '进入同频引力场' }}</span>
+                <span v-else>正在处理...</span>
+              </button>
+            </form>
+            
+            <!-- 切换登录/注册模式 -->
+            <div class="mt-8 text-center">
+              <button 
+                @click="toggleMode" 
+                class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-300"
+              >
+                {{ isRegisterMode ? '已有账号？点击登录' : '没有账号？点击注册' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-10 text-center">
+          <p class="text-xs text-gray-400">© 2025 Frequency. 连接每一个同频的你</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, computed } from 'vue';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { login } from '../api/auth';
-import { showToast } from 'vant';
-import 'vant/es/toast/style';
+import { login, register } from '../api/auth';
 
 const router = useRouter();
 const loading = ref(false);
-const schoolName = ref('');
+const isRegisterMode = ref(false);
 
 const form = reactive({
   username: '',
-  password: ''
+  password: '',
+  email: ''
 });
-
-// 根据检测到的学校设置颜色
-const schoolColor = computed(() => {
-  if (schoolName.value.includes('北大') || schoolName.value.includes('Peking')) {
-    return 'beida-red';
-  } else if (schoolName.value.includes('清华') || schoolName.value.includes('Tsinghua')) {
-    return 'qinghua-purple';
-  } else if (schoolName.value.includes('复旦') || schoolName.value.includes('Fudan')) {
-    return 'fudan-blue';
-  } else if (schoolName.value.includes('浙大') || schoolName.value.includes('Zhejiang')) {
-    return 'zheda-green';
-  } else if (schoolName.value.includes('上海交大') || schoolName.value.includes('SJTU')) {
-    return 'sjtu-red';
-  } else if (schoolName.value.includes('中国科大') || schoolName.value.includes('USTC')) {
-    return 'ustc-orange';
-  } else {
-    return 'default-blue';
-  }
-});
-
-// 检测学校信息
-const detectSchool = () => {
-  const email = form.username.toLowerCase();
-  
-  if (email.includes('pku.edu.cn') || email.includes('peking')) {
-    schoolName.value = '北京大学';
-  } else if (email.includes('tsinghua.edu.cn') || email.includes('tsinghua')) {
-    schoolName.value = '清华大学';
-  } else if (email.includes('fudan.edu.cn') || email.includes('fudan')) {
-    schoolName.value = '复旦大学';
-  } else if (email.includes('zju.edu.cn') || email.includes('zhejiang')) {
-    schoolName.value = '浙江大学';
-  } else if (email.includes('sjtu.edu.cn') || email.includes('sjtu')) {
-    schoolName.value = '上海交通大学';
-  } else if (email.includes('ustc.edu.cn') || email.includes('ustc')) {
-    schoolName.value = '中国科学技术大学';
-  } else {
-    schoolName.value = '';
-  }
-};
 
 const handleLogin = async () => {
-  if (!form.username || !form.password) {
-    showToast({
-      message: '请输入账号和密码',
-      position: 'top',
-      duration: 2000
-    });
-    return;
-  }
-
+  if (!form.username || !form.password) return;
   loading.value = true;
-
   try {
-    // 调用 PIG 后端登录接口
     const res = await login(form.username, form.password);
-    console.log('登录成功', res.data);
-    
-    // 1. 保存 Token 到本地
     localStorage.setItem('access_token', res.data.access_token);
-    localStorage.setItem('refresh_token', res.data.refresh_token);
-    // 保存用户名
-    localStorage.setItem('username', form.username);
-    
-    // 2. 跳转到首页
     router.push('/dashboard');
   } catch (error) {
-    console.error(error);
-    showToast({
-      message: '连接失败: 账号或密码错误',
-      position: 'top',
-      duration: 2000
-    });
+    alert('账号或密码错误');
   } finally {
     loading.value = false;
   }
 };
+
+const handleRegister = async () => {
+  if (!form.username || !form.password || !form.email) return;
+  loading.value = true;
+  try {
+    await register(form.username, form.password, form.email);
+    alert('注册成功，请登录');
+    isRegisterMode.value = false;
+    form.username = '';
+    form.password = '';
+    form.email = '';
+  } catch (error) {
+    alert('注册失败，请重试');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const toggleMode = () => {
+  isRegisterMode.value = !isRegisterMode.value;
+};
 </script>
 
 <style scoped>
-/* 赛博朋克极简风样式 
-  这里使用原生 CSS 以确保霓虹光影效果的精确控制
-*/
-.login-container {
-  background-color: #050505;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-family: 'Courier New', Courier, monospace;
-  overflow: hidden;
+/* 确保背景色在所有设备上正确显示 */
+body {
+  background-color: #f9fafb !important;
 }
 
-.neon-circle {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid #0ff;
-  box-shadow: 0 0 20px #0ff, inset 0 0 20px #0ff;
-  margin-bottom: 2rem;
-  animation: pulse 2s infinite;
-}
-
-/* 学校专属颜色 */
-.neon-circle.default-blue {
-  border-color: #0ff;
-  box-shadow: 0 0 20px #0ff, inset 0 0 20px #0ff;
-}
-
-.neon-circle.beida-red {
-  border-color: #ff0000;
-  box-shadow: 0 0 20px #ff0000, inset 0 0 20px #ff0000;
-}
-
-.neon-circle.qinghua-purple {
-  border-color: #9d2235;
-  box-shadow: 0 0 20px #9d2235, inset 0 0 20px #9d2235;
-}
-
-.neon-circle.fudan-blue {
-  border-color: #225d91;
-  box-shadow: 0 0 20px #225d91, inset 0 0 20px #225d91;
-}
-
-.neon-circle.zheda-green {
-  border-color: #006633;
-  box-shadow: 0 0 20px #006633, inset 0 0 20px #006633;
-}
-
-.neon-circle.sjtu-red {
-  border-color: #cc0000;
-  box-shadow: 0 0 20px #cc0000, inset 0 0 20px #cc0000;
-}
-
-.neon-circle.ustc-orange {
-  border-color: #ff7f00;
-  box-shadow: 0 0 20px #ff7f00, inset 0 0 20px #ff7f00;
-}
-
-.title {
-  font-size: 2.5rem;
-  letter-spacing: 5px;
-  text-shadow: 0 0 10px #f0f;
-  margin: 0;
-  font-weight: bold;
-}
-
-.slogan {
-  font-size: 0.8rem;
-  color: #888;
-  margin-bottom: 3rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.form-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: 0 20px;
-}
-
-.cyber-input {
-  display: block;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #333;
-  color: #0ff;
-  width: 100%;
-  max-width: 300px;
-  padding: 10px;
-  margin-bottom: 25px;
-  outline: none;
-  transition: 0.3s;
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-.cyber-input::placeholder {
-  color: #444;
-}
-
-.cyber-input:focus {
-  border-bottom-color: #f0f;
-  box-shadow: 0 10px 10px -10px rgba(255, 0, 255, 0.3);
-}
-
-.cyber-btn {
-  background: transparent;
-  border: 1px solid #f0f;
-  color: #f0f;
-  padding: 12px 50px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  transition: 0.3s;
-  margin-top: 10px;
-  font-weight: bold;
-  font-family: inherit;
-}
-
-.cyber-btn:hover {
-  background: #f0f;
-  color: #000;
-  box-shadow: 0 0 20px #f0f;
-}
-
-.cyber-btn:disabled {
-  border-color: #444;
-  color: #444;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* 学校徽章样式 */
-.school-badge {
-  margin-top: 1.5rem;
-  padding: 8px 20px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.badge-label {
-  font-size: 0.9rem;
-  color: #0ff;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+/* 动画效果增强 */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.8; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>
