@@ -1,0 +1,38 @@
+import request from './request';
+
+// 登录方法
+export const login = async (username, password) => {
+    // 模拟登录 - 用于测试，实际环境请删除
+    if (import.meta.env.DEV) {
+        // 任何用户名密码都可以登录
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    data: {
+                        access_token: 'mock_access_token',
+                        refresh_token: 'mock_refresh_token'
+                    }
+                });
+            }, 500);
+        });
+    }
+    
+    // 真实登录逻辑
+    const params = new URLSearchParams();
+    params.append('username', username);
+    params.append('password', password);
+    params.append('grant_type', 'password');
+    params.append('scope', 'server');
+    // 如果有验证码，还需要 code 和 randomStr
+
+    // Basic Auth 头 (client_id:client_secret 的 Base64)
+    // frequency:frequency_secret -> ZnJlcXVlbmN5OmZyZXF1ZW5jeV9zZWNyZXQ=
+    const basicAuth = 'Basic ZnJlcXVlbmN5OmZyZXF1ZW5jeV9zZWNyZXQ='; 
+
+    return request.post('/auth/oauth2/token', params, {
+        headers: {
+            'Authorization': basicAuth,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    });
+};
