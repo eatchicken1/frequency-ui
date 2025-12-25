@@ -1,146 +1,130 @@
 <template>
-  <div class="min-h-screen flex overflow-hidden">
-    <!-- 左侧渐变区域 -->
-    <div class="hidden md:flex md:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700">
-      <!-- 动态波形效果 -->
-      <div class="absolute inset-0 overflow-hidden opacity-20">
-        <div class="absolute top-0 left-0 right-0 h-full flex items-center justify-center">
-          <svg viewBox="0 0 1200 800" class="w-full h-full" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
-                <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0.1" />
-                <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.3" />
-              </linearGradient>
-            </defs>
-            <!-- 主波形 -->
-            <path d="M0,400 C300,300 300,500 600,400 C900,300 900,500 1200,400 L1200,800 L0,800 Z" fill="url(#waveGradient)" />
-            <!-- 高频波形装饰 -->
-            <path d="M0,350 Q100,380 200,350 T400,350 T600,350 T800,350 T1000,350 T1200,350 L1200,355 L0,355 Z" fill="white" opacity="0.4" />
-            <path d="M0,450 Q100,480 200,450 T400,450 T600,450 T800,450 T1000,450 T1200,450 L1200,455 L0,455 Z" fill="white" opacity="0.4" />
-          </svg>
-        </div>
-      </div>
+  <div class="min-h-screen w-full flex bg-white font-sans selection:bg-indigo-100 selection:text-indigo-600">
+    
+    <!-- ================= 左侧：视觉引力场 (60%) ================= -->
+    <div class="hidden lg:flex w-3/5 bg-slate-50 relative overflow-hidden items-center justify-center">
       
-      <!-- 左侧品牌内容 -->
-      <div class="relative z-10 flex flex-col justify-center items-center p-12 text-white text-center">
-        <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-8 shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-12 h-12 animate-pulse">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9l-1.5-1.5m0 0L12 10.5m3.75 3.75L12 18m-3.75-3.75l1.5-1.5m0 0L12 13.5M9.75 9.75l1.5-1.5M14.25 14.25l1.5-1.5M9.75 14.25l1.5 1.5M14.25 9.75l1.5 1.5" />
-          </svg>
-        </div>
-        
-        <h1 class="text-6xl font-extrabold mb-4 tracking-tight">FREQUENCY</h1>
-        <h2 class="text-4xl font-semibold mb-6 text-white/90">同频</h2>
-        <p class="text-2xl mb-8 max-w-md text-white/90">AI 高校社交引力场</p>
-        <p class="text-lg max-w-md text-white/80 leading-relaxed">在这里，找到属于你的高校同频者，开启全新的社交体验</p>
-        
-        <!-- 装饰性频率线 -->
-        <div class="mt-12 flex space-x-2">
-          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 0ms;"></div>
-          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 100ms;"></div>
-          <div class="w-12 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 200ms;"></div>
-          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 300ms;"></div>
-          <div class="w-8 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 400ms;"></div>
-        </div>
+      <!-- 动态背景纹理 -->
+      <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+      
+      <!-- 核心巧思：CSS 液态流体 (模拟 AI 回响) -->
+      <!-- class "breathing" 是呼吸动画，"trembling" 是输入时的颤动 -->
+      <div class="echo-fluid relative z-10" :class="{ 'trembling': isTyping }">
+        <div class="fluid-blob bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div class="fluid-blob blur-layer bg-indigo-400"></div>
+      </div>
+
+      <!-- Slogan 浮层 -->
+      <div class="absolute bottom-20 left-12 z-20">
+        <h2 class="text-3xl font-bold text-slate-800 tracking-tight mb-2">Let our Echoes meet first.</h2>
+        <p class="text-slate-500 text-sm tracking-wide">让回响先相遇 · 全校互联 · AI 替身社交</p>
+      </div>
+
+      <!-- 装饰性代码元素 -->
+      <div class="absolute top-12 right-12 font-mono text-xs text-slate-300 opacity-50 select-none">
+        <div>> INITIALIZING NEURAL LINK...</div>
+        <div>> SYNC_RATE: 100%</div>
+        <div>> ECHO_ID: UNDEFINED</div>
       </div>
     </div>
-    
-    <!-- 右侧登录表单区域 -->
-    <div class="w-full md:w-1/2 flex items-center justify-center p-8 bg-gray-50">
-      <div class="w-full max-w-md">
-        <!-- 移动端Logo -->
-        <div class="md:hidden flex items-center justify-center mb-10">
-          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-8 h-8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9l-1.5-1.5m0 0L12 10.5m3.75 3.75L12 18m-3.75-3.75l1.5-1.5m0 0L12 13.5M9.75 9.75l1.5-1.5M14.25 14.25l1.5-1.5M9.75 14.25l1.5 1.5M14.25 9.75l1.5 1.5" />
+
+    <!-- ================= 右侧：登录控制台 (40%) ================= -->
+    <div class="w-full lg:w-2/5 bg-white flex flex-col justify-center items-center p-8 lg:p-16 relative shadow-2xl lg:shadow-none">
+      
+      <div class="w-full max-w-sm space-y-8">
+        
+        <!-- 头部欢迎语 -->
+        <div class="text-center lg:text-left">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+              <path fill-rule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436h.671A3.375 3.375 0 0120.462 18.09l-.916 2.75a.75.75 0 01-1.424-.474l.916-2.75a1.875 1.875 0 00-1.775-2.466H9.75a3.75 3.75 0 01-3.75-3.75V3.75a.75.75 0 01.75-.75h.671c2.88.001 5.464 2.14 7.894 4.584zM6 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
             </svg>
           </div>
-          <h1 class="ml-3 text-3xl font-bold text-gray-900">FREQUENCY</h1>
+          <h1 class="text-2xl font-bold text-slate-900">欢迎回到 Frequency</h1>
+          <p class="mt-2 text-sm text-slate-500">登录以激活您的 Echo 数字分身</p>
         </div>
-        
-        <!-- 表单容器 -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300">
-          <div class="p-10">
-            <div class="text-center mb-10">
-              <h3 class="text-3xl font-bold text-gray-900 mb-2">{{ isRegisterMode ? '创建账号' : '登录' }}</h3>
-              <p class="text-sm text-gray-500">{{ isRegisterMode ? '加入 Frequency，开始同频社交' : '欢迎回来，请登录您的账号' }}</p>
-            </div>
-            
-            <form class="space-y-6">
-              <!-- 用户名输入框 -->
-              <div class="relative group">
-                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                  </svg>
-                </div>
-                <input 
-                  v-model="form.username" 
-                  type="text" 
-                  class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 text-gray-900 placeholder-gray-400 hover:border-gray-300 hover:shadow-sm"
-                  placeholder="学号 / 用户名"
-                />
+
+        <!-- 表单区域 -->
+        <div class="space-y-6">
+          
+          <!-- 账号输入 -->
+          <div class="group">
+            <label for="username" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 ml-1">
+              学号 / ID
+            </label>
+            <div class="relative">
+              <input 
+                id="username"
+                v-model="form.username" 
+                type="text" 
+                @input="handleTyping"
+                class="block w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
+                placeholder="请输入您的学号"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
               </div>
-              
-              <!-- 注册模式下显示邮箱输入 -->
-              <div v-if="isRegisterMode" class="relative group">
-                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                  </svg>
-                </div>
-                <input 
-                  v-model="form.email" 
-                  type="email" 
-                  class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 text-gray-900 placeholder-gray-400 hover:border-gray-300 hover:shadow-sm"
-                  placeholder="邮箱"
-                />
-              </div>
-              
-              <!-- 密码输入框 -->
-              <div class="relative group">
-                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                  </svg>
-                </div>
-                <input 
-                  v-model="form.password" 
-                  type="password" 
-                  class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 text-gray-900 placeholder-gray-400 hover:border-gray-300 hover:shadow-sm"
-                  placeholder="密码"
-                />
-              </div>
-              
-              <!-- 提交按钮 -->
-              <button 
-                @click.prevent="isRegisterMode ? handleRegister : handleLogin" 
-                :disabled="loading"
-                class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-3 rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
-              >
-                <span v-if="!loading">{{ isRegisterMode ? '完成注册' : '进入同频引力场' }}</span>
-                <span v-else>正在处理...</span>
-              </button>
-            </form>
-            
-            <!-- 切换登录/注册模式 -->
-            <div class="mt-8 text-center">
-              <button 
-                @click="toggleMode" 
-                class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-300"
-              >
-                {{ isRegisterMode ? '已有账号？点击登录' : '没有账号？点击注册' }}
-              </button>
             </div>
           </div>
+
+          <!-- 密码输入 -->
+          <div class="group">
+            <div class="flex items-center justify-between mb-2 ml-1">
+              <label for="password" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                密码
+              </label>
+              <a href="#" class="text-xs font-medium text-indigo-600 hover:text-indigo-500">忘记密码?</a>
+            </div>
+            <div class="relative">
+              <input 
+                id="password"
+                v-model="form.password" 
+                type="password" 
+                @input="handleTyping"
+                @keyup.enter="handleLogin"
+                class="block w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
+                placeholder="••••••••"
+              />
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 登录按钮 -->
+          <button 
+            @click="handleLogin" 
+            :disabled="loading"
+            class="w-full relative overflow-hidden bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 rounded-xl shadow-lg shadow-slate-200 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group"
+          >
+            <span class="relative z-10 flex items-center justify-center gap-2">
+              <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span v-if="!loading">登录 Frequency</span>
+              <span v-else>正在同步数据...</span>
+              
+              <svg v-if="!loading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 group-hover:translate-x-1 transition-transform">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </span>
+            <!-- 按钮背景流光效果 -->
+            <div class="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-transform duration-500 ease-out z-0"></div>
+          </button>
+
         </div>
-        
-        <div class="mt-10 text-center">
-          <p class="text-xs text-gray-400">© 2025 Frequency. 连接每一个同频的你</p>
+
+        <!-- 底部版权 -->
+        <div class="mt-8 text-center border-t border-slate-100 pt-6">
+          <p class="text-xs text-slate-400">
+            © 2025 Frequency Labs · 
+            <span class="hover:text-indigo-500 cursor-pointer transition-colors">隐私协议</span> · 
+            <span class="hover:text-indigo-500 cursor-pointer transition-colors">关于我们</span>
+          </p>
         </div>
+
       </div>
     </div>
   </div>
@@ -149,17 +133,26 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { login, register } from '../api/auth';
+import { login } from '../api/auth';
 
 const router = useRouter();
 const loading = ref(false);
-const isRegisterMode = ref(false);
+const isTyping = ref(false);
+let typingTimer = null;
 
 const form = reactive({
   username: '',
-  password: '',
-  email: ''
+  password: ''
 });
+
+// 处理打字时的视觉反馈
+const handleTyping = () => {
+  isTyping.value = true;
+  if (typingTimer) clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => {
+    isTyping.value = false;
+  }, 300); // 停止打字300ms后恢复平静
+};
 
 const handleLogin = async () => {
   if (!form.username || !form.password) return;
@@ -169,51 +162,65 @@ const handleLogin = async () => {
     localStorage.setItem('access_token', res.data.access_token);
     router.push('/dashboard');
   } catch (error) {
+    // 这里可以用更优雅的 Toast 提示
     alert('账号或密码错误');
   } finally {
     loading.value = false;
   }
 };
-
-const handleRegister = async () => {
-  if (!form.username || !form.password || !form.email) return;
-  loading.value = true;
-  try {
-    await register(form.username, form.password, form.email);
-    alert('注册成功，请登录');
-    isRegisterMode.value = false;
-    form.username = '';
-    form.password = '';
-    form.email = '';
-  } catch (error) {
-    alert('注册失败，请重试');
-  } finally {
-    loading.value = false;
-  }
-};
-
-const toggleMode = () => {
-  isRegisterMode.value = !isRegisterMode.value;
-};
 </script>
 
 <style scoped>
-/* 确保背景色在所有设备上正确显示 */
-body {
-  background-color: #f9fafb !important;
+/* 定义左侧流体动画 */
+.echo-fluid {
+  width: 400px;
+  height: 400px;
+  position: relative;
+  /* 呼吸动画：模拟 AI 待机 */
+  animation: float 8s ease-in-out infinite;
 }
 
-/* 动画效果增强 */
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* 颤动状态：模拟数据输入 */
+.echo-fluid.trembling {
+  animation: tremble 0.1s linear infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.fluid-blob {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  /* 形状变换动画 */
+  animation: morph 12s linear infinite alternate;
+  will-change: border-radius, transform;
+}
+
+.blur-layer {
+  filter: blur(40px);
+  opacity: 0.6;
+  z-index: -1;
+  transform: scale(1.1);
+}
+
+@keyframes morph {
+  0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+  66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
+  100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+@keyframes tremble {
+  0% { transform: translate(1px, 1px); }
+  25% { transform: translate(-1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, -1px); }
+  100% { transform: translate(1px, 1px); }
 }
 </style>
