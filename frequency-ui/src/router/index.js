@@ -21,6 +21,40 @@ const router = createRouter({
       name: 'chat-room',
       component: () => import('../views/ChatRoomView.vue'),
       meta: { requiresAuth: true } // 需要登录才能访问
+    },
+    {
+    path: '/landing',
+    name: 'Landing',
+    component: () => import('@/views/app/landing/index.vue'),
+    meta: {
+      isAuth: false, // 标记不需要后台权限校验
+      title: 'Frequency - 寻找共鸣'
+    }
+    },{
+      path: '/app',
+      component: () => import('@/views/app/layout/index.vue'),
+      redirect: '/app/home',
+      children: [
+        {
+          path: 'home',
+          name: 'AppHome',
+          // 这里暂时用一个空组件占位，后续再写
+          component: () => import('@/views/app/home/index.vue'), 
+          meta: { title: '当下' }
+        },
+        {
+          path: 'resonance',
+          name: 'AppResonance',
+          component: () => import('@/views/app/resonance/index.vue'),
+          meta: { title: '共鸣' }
+        },
+        {
+          path: 'me',
+          name: 'AppMe',
+          component: () => import('@/views/app/me/index.vue'),
+          meta: { title: '本我' }
+        }
+      ]
     }
   ]
 })
