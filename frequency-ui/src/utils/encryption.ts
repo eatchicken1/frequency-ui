@@ -1,32 +1,32 @@
-// src/utils/encryption.ts
-import CryptoJS from 'crypto-js';
-
-// Pig 默认的 AES 密钥 (可在 Nacos 的 pig-gateway-dev.yml 中找到 security.encode.key)
-// 如果你的后端改过，请务必同步修改这里！
-const KEY = CryptoJS.enc.Utf8.parse('thanks,pig4cloud'); 
-const IV = CryptoJS.enc.Utf8.parse('thanks,pig4cloud'); 
+import CryptoJS from 'crypto-js'
 
 /**
- * AES加密
+ * AES 加密
+ * @param src 待加密的明文密码
+ * @param keyWord 加密密钥
  */
-export function encrypt(word: string) {
-  const src = CryptoJS.enc.Utf8.parse(word);
-  const encrypted = CryptoJS.AES.encrypt(src, KEY, {
-    iv: IV,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.ZeroPadding
-  });
-  return encrypted.toString();
+export function encryption(src: string, keyWord: string) {
+  const key = CryptoJS.enc.Utf8.parse(keyWord); 
+  // 加密 
+  const encrypted = CryptoJS.AES.encrypt(src, key, { 
+      iv: key, 
+      mode: CryptoJS.mode.CFB, 
+      padding: CryptoJS.pad.NoPadding, 
+  }); 
+  return encrypted.toString(); 
 }
 
 /**
- * AES解密
+ * AES 解密
+ * @param encryptedText 加密后的文本
+ * @param keyWord 解密密钥
  */
-export function decrypt(word: string) {
-  const decrypt = CryptoJS.AES.decrypt(word, KEY, {
-    iv: IV,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.ZeroPadding
+export function decryption(encryptedText: string, keyWord: string) {
+  const key = CryptoJS.enc.Utf8.parse(keyWord);
+  const decrypt = CryptoJS.AES.decrypt(encryptedText, key, {
+    iv: key,
+    mode: CryptoJS.mode.CFB,
+    padding: CryptoJS.pad.NoPadding
   });
-  return decrypt.toString(CryptoJS.enc.Utf8);
+  return CryptoJS.enc.Utf8.stringify(decrypt).toString();
 }

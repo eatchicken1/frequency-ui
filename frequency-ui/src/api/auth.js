@@ -1,4 +1,5 @@
 import request from './request';
+import { encryption } from '@/utils/encryption'; // 导入加密工具
 
 // 注册方法
 export const register = async (username, password, email) => {
@@ -36,22 +37,28 @@ export const login = async (username, password) => {
         });
     }
     
+    // 获取 Basic Auth 头
+    const basicAuth = 'Basic ' + window.btoa(import.meta.env.VITE_OAUTH2_PASSWORD_CLIENT || 'frequency:frequency_secret');
+    
+    // 密码加密
+    let encPassword = password;
+    if (import.meta.env.VITE_PWD_ENC_KEY) {
+        encPassword = encryption(password, import.meta.env.VITE_PWD_ENC_KEY);
+    }
+    
     // 真实登录逻辑
     const params = new URLSearchParams();
     params.append('username', username);
-    params.append('password', password);
+    params.append('password', encPassword);
     params.append('grant_type', 'password');
     params.append('scope', 'server');
     // 如果有验证码，还需要 code 和 randomStr
 
-    // Basic Auth 头 (client_id:client_secret 的 Base64)
-    // frequency:frequency_secret -> ZnJlcXVlbmN5OmZyZXF1ZW5jeV9zZWNyZXQ=
-    const basicAuth = 'Basic ZnJlcXVlbmN5OmZyZXF1ZW5jeV9zZWNyZXQ='; 
-
     return request.post('/auth/oauth2/token', params, {
         headers: {
             'Authorization': basicAuth,
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'skipToken': true
         }
     });
 };

@@ -16,14 +16,13 @@ service.interceptors.request.use(
     (config.headers as any)['TENANT-ID'] = '1';
 
     // 2. 处理 Token 逻辑
-    // 【修复点2】关键错误修复！
-    // 原始报错原因：TypeScript 认为 headers 里没有 isToken 这个属性。
-    // 解决办法：将 headers 断言为 any 类型，就可以随意读取自定义属性了。
+    // 支持两种方式跳过token：isToken=false 或 skipToken=true
     const isToken = (config.headers as any).isToken === false;
+    const skipToken = (config.headers as any).skipToken === true;
     
     const token = Cookies.get('access_token');
 
-    if (token && !isToken) {
+    if (token && !isToken && !skipToken) {
       config.headers['Authorization'] = 'Bearer ' + token;
     }
 

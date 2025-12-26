@@ -10,8 +10,8 @@ const request = axios.create({
 request.interceptors.request.use(config => {
     // 从本地存储获取 token
     const token = localStorage.getItem('access_token');
-    // 如果 token 存在，添加到请求头
-    if (token) {
+    // 如果 token 存在且没有设置 skipToken，添加到请求头
+    if (token && !config.headers['skipToken']) {
         config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
