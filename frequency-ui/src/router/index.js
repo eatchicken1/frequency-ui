@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,7 +6,11 @@ const router = createRouter({
     {
       path: '/',
       name: 'login',
-      component: LoginView
+      component: () => import('@/views/app/landing/index.vue'),
+      meta: {
+        isAuth: false,
+        title: 'Frequency - 寻找共鸣'
+      }
     },
     {
       path: '/dashboard',
@@ -22,15 +25,7 @@ const router = createRouter({
       component: () => import('../views/ChatRoomView.vue'),
       meta: { requiresAuth: true } // 需要登录才能访问
     },
-    {
-    path: '/landing',
-    name: 'Landing',
-    component: () => import('@/views/app/landing/index.vue'),
-    meta: {
-      isAuth: false, // 标记不需要后台权限校验
-      title: 'Frequency - 寻找共鸣'
-    }
-    },{
+{
       path: '/app',
       component: () => import('@/views/app/layout/index.vue'),
       redirect: '/app/home',

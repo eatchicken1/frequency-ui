@@ -98,7 +98,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Cookies from 'js-cookie'
 import { login, getCodeImg } from '@/api/app-auth'
-import { encryption } from '@/utils/encryption'
+import { encrypt } from '@/utils/encryption'
 
 const router = useRouter()
 const route = useRoute()
@@ -142,7 +142,8 @@ const handleLogin = async () => {
   isLoading.value = true
   try {
     // 直接传递密码，加密逻辑在API层处理
-    const tokenData: any = await login(loginForm.username, loginForm.password, loginForm.code, loginForm.randomStr)
+    const encryptedPassword = encrypt(loginForm.password)
+    const tokenData: any = await login(loginForm.username, encryptedPassword, loginForm.code, loginForm.randomStr)
     if (tokenData?.access_token) {
       Cookies.set('access_token', tokenData.access_token)
       Cookies.set('refresh_token', tokenData.refresh_token)
