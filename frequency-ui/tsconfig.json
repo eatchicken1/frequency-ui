@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": false, // 建议先关闭严格模式，避免老旧代码大量报错
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["ESNext", "DOM"],
+    "skipLibCheck": true,
+    "noEmit": true,
+    
+    /* 核心修复配置 */
+    "baseUrl": ".",
+    "paths": {
+      "/@/*": ["src/*"],
+      "@/*": ["src/*"]
+    },
+    "allowJs": true,           // 允许引入 .js 文件
+    "checkJs": false,          // 不对 .js 文件进行类型检查
+    
+    "types": ["vite/client", "element-plus/global"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.js",             // 包含 JS 文件
+    "vite.config.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

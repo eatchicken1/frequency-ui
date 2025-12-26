@@ -1,89 +1,109 @@
-import axios from 'axios'
-import Cookies from 'js-cookie'
-import { ElMessage } from 'element-plus'
+import axios, { AxiosInstance } from 'axios';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { Session } from "./storage";
+import qs from 'qs';
 
-// 创建 axios 实例
-const service = axios.create({
-  baseURL: '/api', 
-  timeout: 30000 
-})
+// 配置新建一个 axios 实例
+const service: AxiosInstance = axios.create({
+	baseURL: import.meta.env.VITE_API_URL,
+	timeout: 50000,
+	headers: { 'Content-Type': 'application/json' },
+	paramsSerializer: {
+		serialize: (params) => {
+			return qs.stringify(params, { arrayFormat: 'repeat' });
+		},
+	},
+});
 
-// ================= 请求拦截器 =================
+// 添加请求拦截器
 service.interceptors.request.use(
-  config => {
-    // 1. 全局添加租户 ID
-    // 【修复点1】使用 (config.headers as any) 绕过类型检查，否则 TS 会报错找不到 TENANT-ID
-    (config.headers as any)['TENANT-ID'] = '1';
+	(config) => {
+		// ========================================================================
+		// [核心修复] 针对登录接口 (/oauth2/token) 自动注入 Basic Auth
+		// 后端必须校验 Client ID/Secret 才能放行
+		// ========================================================================
+		if (config.url && config.url.indexOf('/oauth2/token') !== -1) {
+			const clientId = import.meta.env.VITE_APP_CLIENT_ID || 'pig';
+			const clientSecret = import.meta.env.VITE_APP_CLIENT_SECRET || 'pig';
+			config.headers.Authorization = 'Basic ' + window.btoa(`${clientId}:${clientSecret}`);
+		}
 
-    // 2. 处理 Token 逻辑
-    // 支持两种方式跳过token：isToken=false 或 skipToken=true
-    const isToken = (config.headers as any).isToken === false;
-    const skipToken = (config.headers as any).skipToken === true;
-    
-    const token = Cookies.get('access_token');
+		// 处理统一的 Token (非登录接口)
+		const token = Session.get('token');
+		// 检查是否需要跳过Token处理
+		const skipToken = (config.headers as any).skipToken === true;
+		if (token && !config.headers.Authorization && !skipToken) {
+			config.headers.Authorization = `Bearer ${token}`;
+		}
 
-    if (token && !isToken && !skipToken) {
-      config.headers['Authorization'] = 'Bearer ' + token;
-    }
+		// 处理租户ID
+		const tenantId = Session.get('tenantId');
+		if (tenantId) {
+			config.headers['TENANT-ID'] = tenantId;
+		}
 
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
-  }
-)
+		return config;
+	},
+	(error) => {
+		return Promise.reject(error);
+	}
+);
 
-// ================= 响应拦截器 =================
+// 添加响应拦截器
 service.interceptors.response.use(
-  response => {
-    const res = response.data;
-    const status = response.status;
+	(response) => {
+		const res = response.data;
+		// OAuth2 接口返回可能没有 code 字段，直接返回 data
+		if (res.access_token || res.code === 0 || res.code === 200) {
+			return res;
+		}
+		
+		// 处理二进制流 (下载文件)
+		if (response.request.responseType === 'blob' || response.request.responseType === 'arraybuffer') {
+			return response.data;
+		}
 
-    // 情况 A: OAuth2 接口直接返回 Token
-    if (res.access_token) {
-      return res;
-    }
-
-    // 情况 B: 业务接口
-    if (status === 200) {
-      if (res.code === 1) {
-         ElMessage.error(res.msg || '操作失败');
-         return Promise.reject(new Error(res.msg || 'Error'));
-      }
-      return res;
-    }
-    
-    return res;
-  },
-  error => {
-    console.error('Request Error:', error);
-    
-    let msg = '服务器连接异常';
-    if (error.response && error.response.data) {
-       const errData = error.response.data;
-       if (errData.error_description) {
-         msg = errData.error_description;
-       } else if (errData.msg) {
-         msg = errData.msg;
-       } else if (errData.error) {
-         msg = errData.error;
-       }
-    }
-    
-    // 错误信息汉化优化
-    if (msg.includes('Bad credentials')) {
-      msg = '账号或密码错误';
-    } else if (msg.includes('User is disabled')) {
-      msg = '账号已被禁用';
-    } else if (msg.includes('User account is locked')) {
-      msg = '账号已被锁定';
-    } else if (msg.includes('Cannot convert access token to JSON')) {
-      msg = '登录状态已过期，请重新登录';
-    }
-
-    ElMessage.error(msg);
-    return Promise.reject(error);
-  }
-)
+		// 业务逻辑错误处理
+		if (res.code && res.code !== 0) {
+			const msg = res.msg || '服务器开小差了';
+			ElMessage.error(msg);
+			return Promise.reject(new Error(msg));
+		}
+		
+		return res;
+	},
+	(error) => {
+		// 处理 HTTP 状态码错误
+		if (error.response) {
+			const status = error.response.status;
+			const data = error.response.data;
+			
+			if (status === 401) {
+				ElMessageBox.confirm('登录状态已过期，请重新登录', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning',
+				}).then(() => {
+					Session.clear(); // 清除缓存
+					window.location.href = '/'; // 刷新页面跳转登录
+				});
+			} else if (status === 424) {
+				ElMessage.error('令牌状态异常，请重新登录');
+			} else {
+				// 优先显示后端返回的具体错误信息
+				const errorMsg = data.msg || data.error_description || '请求处理失败';
+				
+				// 针对本次问题的特殊提示
+				if(errorMsg.includes('Client信息为空')) {
+					console.error('前端 .env 缺少 VITE_APP_CLIENT_ID 配置');
+				}
+				ElMessage.error(errorMsg);
+			}
+		} else {
+			ElMessage.error('网络连接异常，请检查网络');
+		}
+		return Promise.reject(error);
+	}
+);
 
 export default service;

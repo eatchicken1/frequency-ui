@@ -170,11 +170,11 @@ const closeCore = () => {
 
 .layout-grid {
   display: grid;
-  /* 严格保持你要求的左右宽度 */
-  grid-template-columns: 320px 1fr 360px; 
+  /* 增加左右面板宽度，使其更充分利用空间 */
+  grid-template-columns: 1fr 1.6fr 1fr; 
   gap: 24px;
   height: 100%;
-  max-width: 1600px;
+  max-width: 2000px;
   margin: 0 auto;
 }
 
