@@ -57,6 +57,10 @@
                 <span class="icon">⚡</span>
                 <span>WAKE ECHO</span>
               </button>
+              <button class="btn-echo-core" @click="openEchoCore">
+                <span class="icon">🧠</span>
+                <span>ECHOCORE</span>
+              </button>
             </div>
           </div>
         </section>
@@ -323,6 +327,36 @@ const handlePortalClick = (item: { action?: string }) => {
 }
 .btn-wake:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); background: #000; }
 .btn-wake:active { transform: translateY(0); }
+.action-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn-echo-core {
+  height: 48px;
+  padding: 0 28px;
+  background: #ffffff;
+  color: #18181b;
+  border-radius: 24px;
+  border: 1px solid #e4e4e7;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.btn-echo-core:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  border-color: #d4d4d8;
+}
+.btn-echo-core:active { transform: translateY(0); }
 
 /* ================= Right: Portals ================= */
 .portal-list { list-style: none; padding: 0 24px; margin: 0; }
