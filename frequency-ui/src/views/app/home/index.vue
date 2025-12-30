@@ -64,7 +64,12 @@
         <section class="panel panel-hover">
           <div class="panel-header">PORTAL</div>
           <ul class="portal-list">
-            <li v-for="item in portals" :key="item.name" class="portal-item">
+            <li
+              v-for="item in portals"
+              :key="item.name"
+              class="portal-item"
+              @click="handlePortalClick(item)"
+            >
               <span class="portal-icon">{{ item.icon }}</span>
               <div class="portal-info">
                 <strong>{{ item.name }}</strong>
@@ -95,22 +100,47 @@
       </div>
     </Transition>
 
+    <Transition name="modal-fade">
+      <div
+        v-if="isEchoCoreActive"
+        class="modal-backdrop"
+        @click.self="closeEchoCore"
+      >
+        <div class="modal-wrapper">
+          <div class="modal-header">
+            <div class="modal-status">
+              <span class="status-dot active"></span>
+              <span>ECHOCORE READY</span>
+            </div>
+            <button class="btn-close" @click="closeEchoCore">CLOSE ×</button>
+          </div>
+          
+          <div class="modal-body">
+            <EchoCore />
+          </div>
+        </div>
+      </div>
+    </Transition>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import AiCorePanel from './components/AiCorePanel.vue'
+import EchoCore from './components/EchoCore.vue'
 
 // --- Data ---
 const portals = [
   { icon: '💕', name: 'Resonance', desc: 'Find Soulmate' },
   { icon: '🎓', name: 'Campus', desc: 'School Echoes' },
-  { icon: '🔥', name: 'News', desc: 'Trending' }
+  { icon: '🔥', name: 'News', desc: 'Trending' },
+  { icon: '🧠', name: 'EchoCore', desc: 'AI 分身', action: 'echo-core' }
 ]
 
 // --- State ---
 const isCoreActive = ref(false)
+const isEchoCoreActive = ref(false)
 
 // --- Actions ---
 const openCore = () => {
@@ -119,6 +149,20 @@ const openCore = () => {
 
 const closeCore = () => {
   isCoreActive.value = false
+}
+
+const openEchoCore = () => {
+  isEchoCoreActive.value = true
+}
+
+const closeEchoCore = () => {
+  isEchoCoreActive.value = false
+}
+
+const handlePortalClick = (item: { action?: string }) => {
+  if (item.action === 'echo-core') {
+    openEchoCore()
+  }
 }
 </script>
 
