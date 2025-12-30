@@ -68,7 +68,12 @@
         <section class="panel panel-hover">
           <div class="panel-header">PORTAL</div>
           <ul class="portal-list">
-            <li v-for="item in portals" :key="item.name" class="portal-item">
+            <li
+              v-for="item in portals"
+              :key="item.name"
+              class="portal-item"
+              @click="handlePortalClick(item)"
+            >
               <span class="portal-icon">{{ item.icon }}</span>
               <div class="portal-info">
                 <strong>{{ item.name }}</strong>
@@ -133,7 +138,8 @@ import EchoCore from './components/EchoCore.vue'
 const portals = [
   { icon: '💕', name: 'Resonance', desc: 'Find Soulmate' },
   { icon: '🎓', name: 'Campus', desc: 'School Echoes' },
-  { icon: '🔥', name: 'News', desc: 'Trending' }
+  { icon: '🔥', name: 'News', desc: 'Trending' },
+  { icon: '🧠', name: 'EchoCore', desc: 'AI 分身', action: 'echo-core' }
 ]
 
 // --- State ---
@@ -157,6 +163,11 @@ const closeEchoCore = () => {
   isEchoCoreActive.value = false
 }
 
+const handlePortalClick = (item: { action?: string }) => {
+  if (item.action === 'echo-core') {
+    openEchoCore()
+  }
+}
 </script>
 
 <style scoped>
