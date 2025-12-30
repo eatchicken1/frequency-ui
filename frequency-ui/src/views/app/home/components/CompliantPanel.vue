@@ -1,355 +1,241 @@
 <template>
-  <div class="app-container">
-    <!-- Header (不可侵犯区) -->
-    <header class="header">
-      <div class="header-content">
-        <h1 class="header-title">合规性面板</h1>
-        <div class="header-actions">
-          <button class="btn-secondary">帮助</button>
-          <button class="btn-secondary">设置</button>
-        </div>
+  <div class="page-root">
+    <!-- 页面标题区（与 Home 风格一致） -->
+    <div class="page-header">
+      <div class="page-title">
+        <span class="status-dot"></span>
+        <span>Compliant Panel</span>
       </div>
-    </header>
-
-    <!-- Main / Panel (可交互区) -->
-    <main class="main-content">
-      <div class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">用户信息表单</h2>
-        </div>
-        <div class="panel-body">
-          <form class="form">
-            <div class="form-group">
-              <label for="name" class="form-label">姓名</label>
-              <input
-                type="text"
-                id="name"
-                class="form-input"
-                placeholder="请输入您的姓名"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="email" class="form-label">邮箱</label>
-              <input
-                type="email"
-                id="email"
-                class="form-input"
-                placeholder="请输入您的邮箱"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="phone" class="form-label">电话</label>
-              <input
-                type="tel"
-                id="phone"
-                class="form-input"
-                placeholder="请输入您的电话"
-              />
-            </div>
-
-            <div class="form-actions">
-              <button type="button" class="btn-secondary">重置</button>
-              <button type="submit" class="btn-primary">提交</button>
-            </div>
-          </form>
-        </div>
+      <div class="page-desc">
+        System compliance detection and rule validation
       </div>
+    </div>
 
-      <div class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">数据统计</h2>
+    <!-- 页面主体 -->
+    <div class="page-content">
+      <!-- 左侧：配置 / 输入 -->
+      <div class="card card-config">
+        <div class="card-header">
+          <span>Configuration</span>
         </div>
-        <div class="panel-body">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-number">1,234</div>
-              <div class="stat-label">总用户数</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number">567</div>
-              <div class="stat-label">今日新增</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number">89%</div>
-              <div class="stat-label">完成率</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number">$45,678</div>
-              <div class="stat-label">总收入</div>
-            </div>
+
+        <div class="card-body">
+          <div class="form-item">
+            <label>Target Environment</label>
+            <select v-model="form.env">
+              <option value="prod">Production</option>
+              <option value="staging">Staging</option>
+              <option value="dev">Development</option>
+            </select>
+          </div>
+
+          <div class="form-item">
+            <label>Compliance Level</label>
+            <select v-model="form.level">
+              <option value="strict">Strict</option>
+              <option value="normal">Normal</option>
+              <option value="loose">Loose</option>
+            </select>
+          </div>
+
+          <div class="form-item">
+            <label>Rule Set</label>
+            <select v-model="form.ruleSet">
+              <option value="default">Default Rules</option>
+              <option value="security">Security Rules</option>
+              <option value="custom">Custom Rules</option>
+            </select>
           </div>
         </div>
       </div>
-    </main>
 
-    <!-- Footer (不可侵犯区) -->
-    <footer class="footer">
-      <div class="footer-content">
-        <div class="footer-left">
-          <p>© 2024 合规性系统. 保留所有权利.</p>
+      <!-- 右侧：状态 / 执行 -->
+      <div class="card card-status">
+        <div class="card-header">
+          <span>Execution Status</span>
         </div>
-        <div class="footer-right">
-          <p>版本 1.0.0</p>
+
+        <div class="card-body">
+          <div class="status-block">
+            <div class="status-label">Module Status</div>
+            <div class="status-value ready">
+              READY
+            </div>
+          </div>
+
+          <div class="status-block">
+            <div class="status-label">Last Execution</div>
+            <div class="status-value muted">
+              Not executed
+            </div>
+          </div>
+
+          <div class="status-block">
+            <div class="status-label">Result</div>
+            <div class="status-value muted">
+              —
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="primary-btn" @click="execute">
+            Execute Compliance Check
+          </button>
         </div>
       </div>
-    </footer>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
-// Vue 3 Composition API
-import { ref } from 'vue'
+<script setup>
+import { reactive } from 'vue'
 
-// 表单数据
-const formData = ref({
-  name: '',
-  email: '',
-  phone: ''
+const form = reactive({
+  env: 'prod',
+  level: 'normal',
+  ruleSet: 'default'
 })
+
+function execute() {
+  // 这里可以接你原来的执行逻辑
+  console.log('Execute compliance check:', form)
+}
 </script>
 
 <style scoped>
-/* 基础样式重置 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ===== 页面根 ===== */
+.page-root {
+  padding: 32px;
+  background: #f3f4f6;
+  min-height: calc(100vh - 64px);
 }
 
-/* 应用容器 */
-.app-container {
+/* ===== Header（对齐 Home） ===== */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title {
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-/* Header 样式 */
-.header {
-  flex-shrink: 0;
-  isolation: isolate;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e4e4e7;
-  padding: 16px 32px;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header-title {
-  font-size: 24px;
+  gap: 10px;
+  font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
 }
 
-.header-actions {
-  display: flex;
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.page-desc {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ===== 主体布局 ===== */
+.page-content {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
   gap: 24px;
 }
 
-/* Main 内容区域 */
-.main-content {
-  flex: 1;
-  padding: 32px;
-  background-color: #f9fafb;
+/* ===== 通用 Card ===== */
+.card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
 }
 
-/* Panel 样式 */
-.panel {
-  background-color: #ffffff;
-  border: 1px solid #e4e4e7;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-.panel:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
-
-.panel-header {
-  padding: 24px 32px;
-  border-bottom: 1px solid #f3f4f6;
-  background-color: #ffffff;
-}
-
-.panel-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.panel-body {
-  padding: 32px;
-}
-
-/* 表单样式 */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-body {
+  padding: 24px;
+  flex: 1;
+}
+
+.card-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ===== 表单 ===== */
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.form-item label {
+  font-size: 12px;
   color: #374151;
 }
 
-.form-input {
-  height: 44px;
-  padding: 0 24px;
-  border: 1px solid #e4e4e7;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #1f2937;
-  background-color: #ffffff;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus {
+.form-item select {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-input::placeholder {
+.form-item select:focus {
+  border-color: #111827;
+}
+
+/* ===== 状态块 ===== */
+.status-block {
+  margin-bottom: 20px;
+}
+
+.status-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.status-value {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-value.ready {
+  color: #16a34a;
+}
+
+.status-value.muted {
   color: #9ca3af;
 }
 
-.form-actions {
-  display: flex;
-  gap: 24px;
-  margin-top: 8px;
-}
-
-/* 按钮样式 */
-.btn-primary,
-.btn-secondary {
-  min-height: 44px;
-  padding: 0 32px;
+/* ===== 按钮 ===== */
+.primary-btn {
+  width: 100%;
+  height: 40px;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-}
-
-.btn-primary {
-  background-color: #3b82f6;
+  background: #111827;
   color: #ffffff;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
-}
-
-.btn-secondary {
-  background-color: #ffffff;
-  color: #374151;
-  border: 1px solid #e4e4e7;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.btn-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  border-color: #d1d5db;
-}
-
-/* 统计卡片样式 */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-}
-
-.stat-card {
-  padding: 24px;
-  background-color: #f9fafb;
-  border: 1px solid #e4e4e7;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  border-color: #d1d5db;
-}
-
-.stat-number {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-/* Footer 样式 */
-.footer {
-  flex-shrink: 0;
-  isolation: isolate;
-  background-color: #ffffff;
-  border-top: 1px solid #e4e4e7;
-  padding: 16px 32px;
-}
-
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.footer-content p {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-/* 确保所有交互元素符合规范 */
-button,
-input {
-  border-radius: 20px;
-  outline: none;
-}
-
-/* 禁止自动填充样式破坏主题 */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
-  -webkit-text-fill-color: #1f2937 !important;
+.primary-btn:hover {
+  background: #000000;
 }
 </style>
