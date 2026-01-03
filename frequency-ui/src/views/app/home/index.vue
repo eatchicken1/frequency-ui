@@ -57,7 +57,7 @@
                 <span class="icon">⚡</span>
                 <span>WAKE ECHO</span>
               </button>
-              <button class="btn-echo-core" @click="openEchoCore">
+              <button class="btn-echo-core" @click="isEchoCoreActive = true">
                 <span class="icon">🧠</span>
                 <span>ECHOCORE</span>
               </button>
@@ -104,27 +104,7 @@
       </div>
     </Transition>
 
-    <Transition name="modal-fade">
-      <div
-        v-if="isEchoCoreActive"
-        class="modal-backdrop"
-        @click.self="closeEchoCore"
-      >
-        <div class="modal-wrapper">
-          <div class="modal-header">
-            <div class="modal-status">
-              <span class="status-dot active"></span>
-              <span>ECHOCORE READY</span>
-            </div>
-            <button class="btn-close" @click="closeEchoCore">CLOSE ×</button>
-          </div>
-          
-          <div class="modal-body">
-            <EchoCore />
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <EchoCore v-model="isEchoCoreActive" />
 
   </div>
 </template>
@@ -155,17 +135,9 @@ const closeCore = () => {
   isCoreActive.value = false
 }
 
-const openEchoCore = () => {
-  isEchoCoreActive.value = true
-}
-
-const closeEchoCore = () => {
-  isEchoCoreActive.value = false
-}
-
 const handlePortalClick = (item: { action?: string }) => {
   if (item.action === 'echo-core') {
-    openEchoCore()
+    isEchoCoreActive.value = true
   }
 }
 </script>
