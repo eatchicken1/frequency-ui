@@ -32,10 +32,10 @@ export const getRecommendedUsers = () => {
     });
 };
 
-export const streamChat = async ({ echoId, query, onMessage, onError, onComplete, signal }) => {
+export const streamChat = async ({ echoId, query, conversationId, onMessage, onError, onComplete, signal }) => {
     try {
         const baseURL = request.defaults.baseURL || '';
-        const url = `${baseURL}/business/chat/stream?echoId=${encodeURIComponent(echoId)}&query=${encodeURIComponent(query)}`;
+        const url = `${baseURL}/business/chat/stream?echoId=${encodeURIComponent(echoId)}&query=${encodeURIComponent(query)}${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}`;
 
         console.log('Stream Chat URL:', url);
 

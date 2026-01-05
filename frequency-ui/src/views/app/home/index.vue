@@ -17,42 +17,53 @@
       </div>
 
       <div class="header-right">
-        <div class="user-box">
-          <div class="user-text">
-            <span class="user-name">Admin</span>
-            <span class="user-role">Super User</span>
-          </div>
-          <div class="avatar">😊</div>
-        </div>
+        <button class="header-chip">
+          <span class="chip-dot"></span>
+          <span>LIVE</span>
+        </button>
+        <button class="header-btn">⚙️</button>
       </div>
     </header>
 
     <main class="app-main">
       <div class="layout-grid">
-        
         <section class="panel panel-hover">
           <div class="panel-header">SIGNAL MONITOR</div>
-          <div class="panel-body center">
+          <div class="panel-body center signal-body">
             <div class="wave">
               <span v-for="i in 5" :key="i"></span>
             </div>
-            <p v-if="showListening" class="hint">LISTENING…</p>
+
+            <!-- LISTENING 固定占位层（防止挤压聊天） -->
+            <div class="listening-holder">
+              <p class="hint" :class="{ show: showListening }">LISTENING…</p>
+            </div>
+
             <div class="chat-box" @click.stop>
-              <div class="chat-messages">
+              <div ref="chatScrollRef" class="chat-messages">
                 <div
                   v-for="(message, index) in messages"
                   :key="index"
-                  :class="['chat-message', message.role]"
+                  :class="['chat-row', message.role]"
                 >
-                  <span class="role">{{ message.role === 'user' ? 'YOU' : 'AI' }}</span>
-                  <p>{{ message.content }}</p>
+                  <div class="chat-avatar">
+                    {{ message.role === 'user' ? 'U' : 'E' }}
+                  </div>
+
+                  <div class="chat-bubble">
+                    <div class="chat-name">{{ message.role === 'user' ? 'me' : 'myEcho' }}</div>
+                    <p class="chat-text">{{ message.content }}</p>
+                  </div>
                 </div>
               </div>
+
               <div class="chat-input">
                 <input
                   v-model="userInput"
                   type="text"
                   placeholder="输入内容..."
+                  @focus="isInputFocused = true"
+                  @blur="isInputFocused = false"
                   @keyup.enter="sendMessage"
                   :disabled="isStreaming"
                 />
@@ -73,10 +84,23 @@
                 <span class="core-state animate-pulse">STANDBY</span>
               </div>
             </div>
-            
-            <h2 class="core-title">ECHO-01</h2>
 
-            <div class="action-area">
+            <div class="core-meta">
+              <div class="meta-row">
+                <span class="meta-label">Signal</span>
+                <span class="meta-value">Stable</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Latency</span>
+                <span class="meta-value">12ms</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Band</span>
+                <span class="meta-value">Harmonic</span>
+              </div>
+            </div>
+
+            <div class="core-actions">
               <button class="btn-wake" @click="openCore">
                 <span class="icon">⚡</span>
                 <span>WAKE ECHO</span>
@@ -92,49 +116,61 @@
         <section class="panel panel-hover">
           <div class="panel-header">PORTAL</div>
           <ul class="portal-list">
-            <li
-              v-for="item in portals"
-              :key="item.name"
-              class="portal-item"
-              @click="handlePortalClick(item)"
-            >
-              <span class="portal-icon">{{ item.icon }}</span>
-              <div class="portal-info">
-                <strong>{{ item.name }}</strong>
-                <small>{{ item.desc }}</small>
+            <li v-for="p in portals" :key="p.name" class="portal-item" @click="handlePortalClick(p)">
+              <div class="portal-left">
+                <span class="portal-icon">{{ p.icon }}</span>
+                <div class="portal-text">
+                  <div class="portal-title">{{ p.name }}</div>
+                  <div class="portal-desc">{{ p.desc }}</div>
+                </div>
               </div>
+              <span class="portal-arrow">›</span>
             </li>
           </ul>
         </section>
-
       </div>
-    </main>
 
-    <Transition name="modal-fade">
-      <div v-if="isCoreActive" class="modal-backdrop" @click.self="closeCore">
-        <div class="modal-wrapper">
-          <div class="modal-header">
-            <div class="modal-status">
-              <span class="status-dot active"></span>
-              <span>NEURAL LINK ESTABLISHED</span>
+      <Teleport to="body">
+        <Transition name="modal-fade">
+          <div v-if="isCoreActive" class="modal-backdrop" @click.self="closeCore">
+            <div class="modal-panel" @click.stop>
+              <div class="modal-header">
+                <div class="modal-title">
+                  <span class="modal-dot"></span>
+                  <span>Echo Core</span>
+                </div>
+                <button class="btn-close" @click="closeCore">✕</button>
+              </div>
+              <div class="modal-body">
+                <AiCorePanel />
+              </div>
             </div>
-            <button class="btn-close" @click="closeCore">CLOSE ×</button>
           </div>
-          
-          <div class="modal-body">
-            <AiCorePanel />
+        </Transition>
+
+        <Transition name="modal-fade">
+          <div v-if="isEchoCoreActive" class="modal-backdrop" @click.self="isEchoCoreActive = false">
+            <div class="modal-panel" @click.stop>
+              <div class="modal-header">
+                <div class="modal-title">
+                  <span class="modal-dot"></span>
+                  <span>EchoCore</span>
+                </div>
+                <button class="btn-close" @click="isEchoCoreActive = false">✕</button>
+              </div>
+              <div class="modal-body">
+                <EchoCore v-model="isEchoCoreActive" />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </Transition>
-
-    <EchoCore v-model="isEchoCoreActive" />
-
+        </Transition>
+      </Teleport>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { streamChat } from '@/api/business'
 import AiCorePanel from './components/AiCorePanel.vue'
 import EchoCore from './components/EchoCore.vue'
@@ -150,11 +186,38 @@ const portals = [
 // --- State ---
 const isCoreActive = ref(false)
 const isEchoCoreActive = ref(false)
+
+type ChatMessage = { role: 'user' | 'ai'; content: string }
 const userInput = ref('')
-const messages = ref<{ role: 'user' | 'ai'; content: string }[]>([])
+const isInputFocused = ref(false)
+const messages = ref<ChatMessage[]>([])
 const isStreaming = ref(false)
-const showListening = ref(true)
+
+const chatScrollRef = ref<HTMLElement | null>(null)
 const streamController = ref<AbortController | null>(null)
+
+let stopCurrentTyping: (() => void) | null = null
+
+// 我输入时显示 LISTENING…；AI 回复(流式)时隐藏
+const showListening = computed(() => {
+  if (isStreaming.value) return false
+  return isInputFocused.value || userInput.value.trim().length > 0
+})
+
+const scrollToBottom = async () => {
+  await nextTick()
+  const el = chatScrollRef.value
+  if (!el) return
+  el.scrollTop = el.scrollHeight
+}
+
+watch(
+  messages,
+  () => {
+    scrollToBottom()
+  },
+  { deep: true }
+)
 
 // --- Actions ---
 const openCore = () => {
@@ -175,76 +238,106 @@ const sendMessage = async () => {
   const content = userInput.value.trim()
   if (!content || isStreaming.value) return
 
-  userInput.value = ''
-  messages.value.push({ role: 'user', content })
-  messages.value.push({ role: 'ai', content: '' })
-  showListening.value = true
+  // stop previous typing/stream if any
+  stopCurrentTyping?.()
+  stopCurrentTyping = null
 
   if (streamController.value) {
     streamController.value.abort()
+    streamController.value = null
   }
+
+  userInput.value = ''
+  messages.value.push({ role: 'user', content })
+  messages.value.push({ role: 'ai', content: '' })
+
+  const currentIndex = messages.value.length - 1
+
   const controller = new AbortController()
   streamController.value = controller
   isStreaming.value = true
 
-  const currentIndex = messages.value.length - 1
-  const fullText = ref('')
-  const displayIndex = ref(0)
-  let isTypingStarted = false
-  let isTyping = false
+  let fullText = ''
+  let displayIndex = 0
+  let typingActive = false
+  let typingTimer: number | null = null
 
-  console.log('Current message index:', currentIndex)
-  console.log('Current message object:', messages.value[currentIndex])
-
-  const typeNextChar = () => {
-    if (!isTyping) {
-      console.log('Typing stopped - isTyping:', isTyping)
-      return
-    }
-    console.log('TypeNextChar - displayIndex:', displayIndex.value, 'fullText.length:', fullText.value.length)
-    if (displayIndex.value < fullText.value.length) {
-      messages.value[currentIndex] = { ...messages.value[currentIndex], content: fullText.value.slice(0, displayIndex.value + 1) }
-      displayIndex.value++
-      console.log('Displaying:', messages.value[currentIndex].content, 'Next displayIndex:', displayIndex.value)
-      console.log('Scheduling next call in 30ms...')
-      setTimeout(typeNextChar, 30)
-    } else {
-      console.log('Typing completed - displayIndex:', displayIndex.value, 'fullText.length:', fullText.value.length)
-      isTyping = false
+  const stopTyping = () => {
+    typingActive = false
+    if (typingTimer != null) {
+      window.clearTimeout(typingTimer)
+      typingTimer = null
     }
   }
+  stopCurrentTyping = stopTyping
 
-  await streamChat({
-    echoId: '1',
-    query: content,
-    signal: controller.signal,
-    onMessage: (chunk: string) => {
-      showListening.value = false
-      fullText.value += chunk
-      console.log('Full text:', fullText.value)
-      console.log('Current display index:', displayIndex.value)
-      console.log('Full text length:', fullText.value.length)
-      
-      // 只在第一次收到数据时启动打字机效果
-      if (!isTypingStarted) {
-        isTypingStarted = true
-        isTyping = true
-        console.log('Starting typing effect...')
-        typeNextChar()
+  const typeNextChar = () => {
+    if (!typingActive) return
+
+    if (displayIndex < fullText.length) {
+      displayIndex += 1
+      messages.value[currentIndex] = {
+        ...messages.value[currentIndex],
+        content: fullText.slice(0, displayIndex)
       }
-    },
-    onError: (error: Error) => {
-      showListening.value = false
-      isTyping = false
-      messages.value[currentIndex] = { ...messages.value[currentIndex], content: error.message || '系统繁忙，请稍后重试。' }
-      isStreaming.value = false
-    },
-    onComplete: () => {
-      showListening.value = false
-      isStreaming.value = false
+      typingTimer = window.setTimeout(typeNextChar, 18)
+      return
     }
-  })
+
+    stopTyping()
+  }
+
+  try {
+    // 获取或生成会话ID
+    const conversationId = sessionStorage.getItem('currentConversationId') || String(Date.now());
+    sessionStorage.setItem('currentConversationId', conversationId);
+
+    await streamChat({
+      echoId: '1',
+      query: content,
+      conversationId: conversationId,
+      signal: controller.signal,
+      onMessage: (chunk: string) => {
+        fullText += chunk
+
+        // 第一次收到流式内容，启动打字机
+        if (!typingActive) {
+          typingActive = true
+          typeNextChar()
+        }
+      },
+      onError: (error: Error) => {
+        stopTyping()
+        messages.value[currentIndex] = {
+          ...messages.value[currentIndex],
+          content: error?.message || '系统繁忙，请稍后重试。'
+        }
+        isStreaming.value = false
+      },
+      onComplete: () => {
+        // flush
+        stopTyping()
+        messages.value[currentIndex] = {
+          ...messages.value[currentIndex],
+          content: fullText
+        }
+        isStreaming.value = false
+      }
+    })
+  } catch (err: any) {
+    stopTyping()
+    messages.value[currentIndex] = {
+      ...messages.value[currentIndex],
+      content: err?.message || '系统繁忙，请稍后重试。'
+    }
+    isStreaming.value = false
+  }
 }
+
+onBeforeUnmount(() => {
+  stopCurrentTyping?.()
+  if (streamController.value) streamController.value.abort()
+})
 </script>
 
 <style scoped>
@@ -278,114 +371,188 @@ const sendMessage = async () => {
 .logo-text { display: flex; flex-direction: column; line-height: 1; }
 .logo-text .title { font-weight: 800; font-size: 14px; letter-spacing: -0.02em; }
 .logo-text .subtitle { font-size: 10px; color: #71717a; letter-spacing: 0.1em; }
-.header-center { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #10b981; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; }
-.status-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
-.user-box { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-.user-text { text-align: right; }
-.user-name { font-size: 12px; font-weight: bold; display: block; }
-.user-role { font-size: 10px; color: #a1a1aa; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e4e4e7; display: grid; place-items: center; background: white; }
+
+.header-center { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: #18181b; }
+.status-dot { width: 8px; height: 8px; border-radius: 99px; background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,0.16); }
+
+.header-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid #e4e4e7; background: white; font-size: 12px; cursor: default; }
+.chip-dot { width: 6px; height: 6px; border-radius: 99px; background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.12); }
+.header-btn { width: 34px; height: 34px; border-radius: 12px; border: 1px solid #e4e4e7; background: white; cursor: pointer; }
 
 /* ================= Main Layout ================= */
 .app-main {
   flex: 1;
-  padding: 24px 32px 32px 32px;
-  min-height: 0; /* Important for scroll */
+  min-height: 0;
+  padding: 24px 32px;
 }
 
 .layout-grid {
   display: grid;
-  /* 增加左右面板宽度，使其更充分利用空间 */
-  grid-template-columns: 1fr 1.6fr 1fr; 
+  grid-template-columns: 1fr 1.6fr 1fr;
   gap: 24px;
   height: 100%;
   max-width: 2000px;
   margin: 0 auto;
 }
 
+/* ================= Left: Chat (WeChat-like) ================= */
+.signal-body {
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ===== LISTENING 固定占位，防止顶聊天 ===== */
+.listening-holder {
+  height: 22px;              /* 固定预留高度 */
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.hint.show {
+  opacity: 1;
+}
+
+
 .chat-box {
   width: 100%;
-  max-width: 320px;
-  margin-top: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e4e4e7;
-  border-radius: 16px;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
 .chat-messages {
-  padding: 12px;
-  max-height: 260px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding: 8px 4px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  scroll-behavior: smooth;
+  /* 隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
-.chat-message {
+/* Chrome, Safari and Opera */
+.chat-messages::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.chat-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.chat-row.user {
+  flex-direction: row-reverse;
+}
+
+.chat-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: #111827;
+  color: #fff;
+}
+
+.chat-row.ai .chat-avatar {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.chat-bubble {
+  max-width: 78%;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
 }
 
-.chat-message .role {
+.chat-name {
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.08em;
   color: #6b7280;
+  text-transform: uppercase;
 }
 
-.chat-message.user {
-  align-items: flex-end;
+.chat-row.user .chat-name {
   text-align: right;
 }
 
-.chat-message.user p {
-  background: #111827;
-  color: #fff;
-  padding: 8px 10px;
-  border-radius: 12px;
-  max-width: 100%;
-}
-
-.chat-message.ai p {
+.chat-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.45;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 14px;
   background: #f3f4f6;
   color: #111827;
-  padding: 8px 10px;
-  border-radius: 12px;
-  max-width: 100%;
+  border-bottom-left-radius: 6px;
+}
+
+.chat-row.user .chat-text {
+  background: #111827;
+  color: #fff;
+  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 14px;
 }
 
 .chat-input {
+  flex-shrink: 0;
   display: flex;
-  align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding-top: 10px;
   border-top: 1px solid #e4e4e7;
-  background: #fff;
 }
 
 .chat-input input {
   flex: 1;
   border: 1px solid #e4e4e7;
-  border-radius: 10px;
-  padding: 8px 10px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
   font-size: 12px;
   outline: none;
+}
+
+.chat-input input:focus {
+  border-color: #111827;
 }
 
 .chat-send {
   border: none;
   background: #111827;
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
   font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .chat-send:disabled {
@@ -406,21 +573,21 @@ const sendMessage = async () => {
 }
 
 .panel-hover {
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s;
 }
 
 .panel-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -10px rgba(0,0,0,0.1);
 }
 
 .panel-header {
-  padding: 20px 24px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #a1a1aa;
+  padding: 18px 24px;
   border-bottom: 1px solid #f4f4f5;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: #111827;
   text-transform: uppercase;
 }
 
@@ -443,124 +610,204 @@ const sendMessage = async () => {
 .wave span:nth-child(1) { height: 20%; animation-delay: 0s; }
 .wave span:nth-child(2) { height: 40%; animation-delay: 0.1s; }
 .wave span:nth-child(3) { height: 100%; animation-delay: 0.2s; }
-.wave span:nth-child(4) { height: 60%; animation-delay: 0.1s; }
-.wave span:nth-child(5) { height: 30%; animation-delay: 0s; }
-@keyframes wave { 0%, 100% { transform: scaleY(1); opacity: 0.5; } 50% { transform: scaleY(1.5); opacity: 1; } }
-.hint { font-size: 11px; color: #cbd5e1; letter-spacing: 0.1em; }
+.wave span:nth-child(4) { height: 40%; animation-delay: 0.3s; }
+.wave span:nth-child(5) { height: 20%; animation-delay: 0.4s; }
 
-/* ================= Middle: Core (Standby) ================= */
-.panel-core {
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #ffffff 0%, #fafafa 100%);
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
 
-.core-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-}
-
-.core-wrapper { position: relative; width: 180px; height: 180px; }
-.core-glow {
-  position: absolute; inset: 0;
-  background: rgba(99, 102, 241, 0.15);
-  filter: blur(40px); border-radius: 50%;
-  animation: breathe 4s infinite ease-in-out;
-}
-.core {
-  position: relative; width: 100%; height: 100%;
-  border-radius: 50%; background: white;
-  border: 1px solid #e4e4e7;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.1);
-}
-.emoji-entity { font-size: 40px; margin-bottom: 4px; }
-.core-state { font-size: 10px; letter-spacing: 0.2em; color: #6366f1; font-weight: 700; }
-.core-title { font-family: monospace; font-size: 14px; letter-spacing: 0.2em; color: #71717a; }
-
-/* 唤醒按钮 */
-.btn-wake {
-  height: 48px; padding: 0 32px;
-  background: #18181b; color: white;
-  border-radius: 24px; border: none;
-  font-weight: 600; font-size: 13px; letter-spacing: 0.05em;
-  display: flex; align-items: center; gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.btn-wake:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); background: #000; }
-.btn-wake:active { transform: translateY(0); }
-.action-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.btn-echo-core {
-  height: 48px;
-  padding: 0 28px;
-  background: #ffffff;
-  color: #18181b;
-  border-radius: 24px;
-  border: 1px solid #e4e4e7;
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.05em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.btn-echo-core:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  border-color: #d4d4d8;
-}
-.btn-echo-core:active { transform: translateY(0); }
-
-/* ================= Right: Portals ================= */
-.portal-list { list-style: none; padding: 0 24px; margin: 0; }
-.portal-item {
-  display: flex; gap: 16px; padding: 16px;
-  border-radius: 16px; cursor: pointer;
-  transition: all 0.2s ease;
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  letter-spacing: 0.2em;
+  font-weight: 700;
   margin-bottom: 8px;
 }
-.portal-item:hover { background: #f8fafc; transform: translateX(4px); }
-.portal-icon { font-size: 20px; width: 40px; height: 40px; background: white; border: 1px solid #f4f4f5; border-radius: 12px; display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-.portal-info { display: flex; flex-direction: column; justify-content: center; }
-.portal-info strong { font-size: 13px; color: #3f3f46; margin-bottom: 2px; }
-.portal-info small { font-size: 11px; color: #a1a1aa; }
+
+/* ================= Middle: Core ================= */
+.panel-core .core-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 26px;
+  gap: 18px;
+}
+
+.core-wrapper {
+  display: grid;
+  place-items: center;
+  position: relative;
+  padding: 30px 0 22px;
+}
+
+.core-glow {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(59,130,246,0.22), rgba(59,130,246,0) 60%);
+  filter: blur(6px);
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+.core {
+  width: 160px;
+  height: 160px;
+  border-radius: 999px;
+  border: 1px solid #e4e4e7;
+  background: linear-gradient(180deg, #ffffff, #fafafa);
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  box-shadow: 0 20px 40px -25px rgba(0,0,0,0.35);
+  position: relative;
+}
+
+.emoji-entity { font-size: 38px; }
+.core-state {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #111827;
+}
+
+.core-meta {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #f4f4f5;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: #fafafa;
+}
+
+.meta-row { display: flex; justify-content: space-between; font-size: 12px; color: #52525b; }
+.meta-label { color: #71717a; }
+.meta-value { font-weight: 700; color: #111827; }
+
+.core-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-wake, .btn-echo-core {
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid #e4e4e7;
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-wake:hover, .btn-echo-core:hover { border-color: #111827; transform: translateY(-1px); }
+.btn-wake { background: #111827; color: white; border-color: #111827; }
+.btn-wake:hover { filter: brightness(1.05); }
+
+.btn-echo-core { background: white; color: #111827; }
+
+/* ================= Right: Portal ================= */
+.portal-list {
+  list-style: none;
+  margin: 0;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.portal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #f4f4f5;
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.portal-item:hover {
+  background: white;
+  border-color: #e4e4e7;
+  transform: translateY(-1px);
+}
+
+.portal-left { display: flex; align-items: center; gap: 12px; }
+.portal-icon { width: 36px; height: 36px; border-radius: 14px; background: white; border: 1px solid #e4e4e7; display: grid; place-items: center; }
+.portal-text { display: flex; flex-direction: column; }
+.portal-title { font-weight: 800; font-size: 13px; color: #111827; }
+.portal-desc { font-size: 11px; color: #71717a; margin-top: 2px; }
+.portal-arrow { font-size: 18px; color: #a1a1aa; }
 
 /* ================= Modal ================= */
 .modal-backdrop {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(9, 9, 11, 0.4);
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55);
   backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 40px;
+  display: grid;
+  place-items: center;
+  z-index: 1000;
 }
 
-.modal-wrapper {
-  width: 100%; max-width: 900px; height: 85vh;
-  display: flex; flex-direction: column; gap: 16px;
+.modal-panel {
+  width: min(1080px, calc(100vw - 48px));
+  height: min(720px, calc(100vh - 120px));
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 40px 90px -30px rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
 }
 
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
-.modal-status { display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.1em; }
-.status-dot.active { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 10px #4ade80; }
+.modal-header {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 0 20px;
+  border-bottom: 1px solid rgba(228,228,231,0.7);
+}
+
+.modal-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #111827;
+}
+
+.modal-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 99px;
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.14);
+}
 
 .btn-close {
-  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
-  color: white; padding: 6px 16px; border-radius: 20px;
-  font-size: 11px; font-weight: 600; cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+  border: 1px solid #e4e4e7;
+  background: white;
+  cursor: pointer;
   transition: all 0.2s;
 }
 .btn-close:hover { background: rgba(255,255,255,0.2); }
