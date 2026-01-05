@@ -1,4 +1,5 @@
 import request from './request';
+import Cookies from 'js-cookie';
 
 // 1. 获取我的分身信息
 export const getMyProfile = () => {
@@ -34,12 +35,14 @@ export const getRecommendedUsers = () => {
 export const streamChat = async ({ echoId, query, onMessage, onError, onComplete, signal }) => {
     try {
         const baseURL = request.defaults.baseURL || '';
-        const url = new URL('/business/chat/stream', baseURL || window.location.origin);
-        url.searchParams.set('echoId', echoId);
-        url.searchParams.set('query', query);
+        const url = `${baseURL}/business/chat/stream?echoId=${encodeURIComponent(echoId)}&query=${encodeURIComponent(query)}`;
 
-        const token = localStorage.getItem('access_token');
-        const response = await fetch(url.toString(), {
+        console.log('Stream Chat URL:', url);
+
+        const token = Cookies.get('access_token');
+        console.log('Token:', token ? 'exists' : 'missing');
+
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 Accept: 'text/event-stream',
@@ -47,6 +50,9 @@ export const streamChat = async ({ echoId, query, onMessage, onError, onComplete
             },
             signal
         });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
         if (!response.ok || !response.body) {
             throw new Error('无法建立对话连接');
@@ -59,27 +65,44 @@ export const streamChat = async ({ echoId, query, onMessage, onError, onComplete
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            buffer += decoder.decode(value, { stream: true });
 
-            let boundaryIndex = buffer.indexOf('\n\n');
-            while (boundaryIndex !== -1) {
-                const chunk = buffer.slice(0, boundaryIndex);
-                buffer = buffer.slice(boundaryIndex + 2);
-                const lines = chunk.split('\n');
-                const dataLines = lines
-                    .map((line) => line.trim())
-                    .filter((line) => line.startsWith('data:'))
-                    .map((line) => line.replace(/^data:\s?/, ''));
+            const chunk = decoder.decode(value, { stream: true });
+            console.log('Raw chunk:', chunk);
+            buffer += chunk;
 
-                if (dataLines.length) {
-                    onMessage?.(dataLines.join('\n'));
+            // 检查是否是 SSE 格式（包含 data: 前缀）
+            if (buffer.includes('data:')) {
+                let boundaryIndex = buffer.indexOf('\n\n');
+                while (boundaryIndex !== -1) {
+                    const chunkData = buffer.slice(0, boundaryIndex);
+                    buffer = buffer.slice(boundaryIndex + 2);
+                    console.log('Parsed chunk:', chunkData);
+
+                    const lines = chunkData.split('\n');
+                    const dataLines = lines
+                        .map((line) => line.trim())
+                        .filter((line) => line.startsWith('data:'))
+                        .map((line) => line.replace(/^data:\s?/, ''));
+
+                    console.log('Data lines:', dataLines);
+
+                    if (dataLines.length) {
+                        onMessage?.(dataLines.join('\n'));
+                    }
+                    boundaryIndex = buffer.indexOf('\n\n');
                 }
-                boundaryIndex = buffer.indexOf('\n\n');
+            } else {
+                // 纯文本流，直接返回
+                if (buffer.length > 0) {
+                    onMessage?.(buffer);
+                    buffer = '';
+                }
             }
         }
 
         onComplete?.();
     } catch (error) {
+        console.error('Stream Chat Error:', error);
         if (signal?.aborted) {
             return;
         }

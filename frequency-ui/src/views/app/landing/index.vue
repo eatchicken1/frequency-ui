@@ -141,20 +141,19 @@ const handleLogin = async () => {
   }
   isLoading.value = true
   try {
-    // 直接传递密码，加密逻辑在API层处理
     const encryptedPassword = encrypt(loginForm.password)
     const tokenData: any = await login(loginForm.username, encryptedPassword, loginForm.code, loginForm.randomStr)
     if (tokenData?.access_token) {
-      Cookies.set('access_token', tokenData.access_token)
-      Cookies.set('refresh_token', tokenData.refresh_token)
-      Cookies.set('tenant_id', '1')
+      Cookies.set('access_token', tokenData.access_token, { expires: 7 })
+      Cookies.set('refresh_token', tokenData.refresh_token, { expires: 30 })
+      Cookies.set('tenant_id', '1', { expires: 30 })
       router.push(route.query?.redirect as string || '/app/home')
     }
   } catch (err) {
     console.error(err)
     isLoading.value = false
-    errorHint.value = '频率未能对齐' // 登录失败
-    refreshCode() // 失败刷新验证码
+    errorHint.value = '频率未能对齐'
+    refreshCode()
   }
 }
 </script>

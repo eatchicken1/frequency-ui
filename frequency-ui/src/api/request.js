@@ -1,43 +1,93 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
+
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const onRefreshed = (token) => {
+    refreshSubscribers.forEach((cb) => cb(token));
+    refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (cb) => {
+    refreshSubscribers.push(cb);
+};
 
 // 创建统一的 Axios 实例
 const request = axios.create({
-    baseURL: '/api', // 基础URL
-    timeout: 30000 // 请求超时时间
+    baseURL: import.meta.env.VITE_API_URL || '/api',
+    timeout: 30000
 });
 
 // 请求拦截器
 request.interceptors.request.use(config => {
-    // 从本地存储获取 token
-    const token = localStorage.getItem('access_token');
-    // 如果 token 存在且没有设置 skipToken，添加到请求头
+    const token = Cookies.get('access_token');
     if (token && !config.headers['skipToken']) {
         config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
 }, error => {
-    // 处理请求错误
     return Promise.reject(error);
 });
 
 // 响应拦截器
-request.interceptors.response.use(response => {
-    // 直接返回响应数据
-    return response;
-}, error => {
-    // 处理响应错误
-    console.error('API 请求错误:', error);
-    // 可以在这里添加统一的错误处理逻辑
-    // 比如 token 过期时跳转到登录页
-    if (error.response && error.response.status === 401) {
-        // 清除本地存储的 token
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('username');
-        // 跳转到登录页
-        window.location.href = '/';
+request.interceptors.response.use(
+    response => {
+        return response;
+    },
+    async error => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise((resolve) => {
+                    addRefreshSubscriber((token) => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        resolve(request(originalRequest));
+                    });
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                const refreshToken = Cookies.get('refresh_token');
+                if (!refreshToken) {
+                    throw new Error('No refresh token');
+                }
+
+                const response = await axios.post(
+                    `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
+                    { refreshToken },
+                    { skipToken: true }
+                );
+
+                const { access_token, refresh_token: newRefreshToken } = response.data;
+
+                Cookies.set('access_token', access_token, { expires: 7 });
+                if (newRefreshToken) {
+                    Cookies.set('refresh_token', newRefreshToken, { expires: 30 });
+                }
+
+                onRefreshed(access_token);
+                isRefreshing = false;
+
+                originalRequest.headers.Authorization = `Bearer ${access_token}`;
+                return request(originalRequest);
+            } catch (refreshError) {
+                isRefreshing = false;
+                Cookies.remove('access_token');
+                Cookies.remove('refresh_token');
+                Cookies.remove('tenant_id');
+                Cookies.remove('username');
+                window.location.href = '/';
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-});
+);
 
 export default request;

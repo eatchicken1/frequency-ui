@@ -188,6 +188,31 @@ const sendMessage = async () => {
   isStreaming.value = true
 
   const currentIndex = messages.value.length - 1
+  const fullText = ref('')
+  const displayIndex = ref(0)
+  let isTypingStarted = false
+  let isTyping = false
+
+  console.log('Current message index:', currentIndex)
+  console.log('Current message object:', messages.value[currentIndex])
+
+  const typeNextChar = () => {
+    if (!isTyping) {
+      console.log('Typing stopped - isTyping:', isTyping)
+      return
+    }
+    console.log('TypeNextChar - displayIndex:', displayIndex.value, 'fullText.length:', fullText.value.length)
+    if (displayIndex.value < fullText.value.length) {
+      messages.value[currentIndex] = { ...messages.value[currentIndex], content: fullText.value.slice(0, displayIndex.value + 1) }
+      displayIndex.value++
+      console.log('Displaying:', messages.value[currentIndex].content, 'Next displayIndex:', displayIndex.value)
+      console.log('Scheduling next call in 30ms...')
+      setTimeout(typeNextChar, 30)
+    } else {
+      console.log('Typing completed - displayIndex:', displayIndex.value, 'fullText.length:', fullText.value.length)
+      isTyping = false
+    }
+  }
 
   await streamChat({
     echoId: '1',
@@ -195,11 +220,23 @@ const sendMessage = async () => {
     signal: controller.signal,
     onMessage: (chunk: string) => {
       showListening.value = false
-      messages.value[currentIndex].content += chunk
+      fullText.value += chunk
+      console.log('Full text:', fullText.value)
+      console.log('Current display index:', displayIndex.value)
+      console.log('Full text length:', fullText.value.length)
+      
+      // 只在第一次收到数据时启动打字机效果
+      if (!isTypingStarted) {
+        isTypingStarted = true
+        isTyping = true
+        console.log('Starting typing effect...')
+        typeNextChar()
+      }
     },
     onError: (error: Error) => {
       showListening.value = false
-      messages.value[currentIndex].content = error.message || '系统繁忙，请稍后重试。'
+      isTyping = false
+      messages.value[currentIndex] = { ...messages.value[currentIndex], content: error.message || '系统繁忙，请稍后重试。' }
       isStreaming.value = false
     },
     onComplete: () => {
