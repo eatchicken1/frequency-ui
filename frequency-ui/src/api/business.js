@@ -34,9 +34,7 @@ export const getRecommendedUsers = () => {
 export const streamChat = async ({ echoId, query, onMessage, onError, onComplete, signal }) => {
     try {
         const baseURL = request.defaults.baseURL || '';
-        const origin = window.location.origin;
-        const resolvedBase = baseURL.startsWith('http') ? baseURL : `${origin}${baseURL}`;
-        const url = new URL('/business/chat/stream', resolvedBase);
+        const url = new URL('/business/chat/stream', baseURL || window.location.origin);
         url.searchParams.set('echoId', echoId);
         url.searchParams.set('query', query);
 
