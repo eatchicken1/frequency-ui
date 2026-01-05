@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 创建统一的 Axios 实例
 const request = axios.create({
-    baseURL: 'http://localhost:9999', // 基础URL
+    baseURL: '/api', // 基础URL
     timeout: 30000 // 请求超时时间
 });
 
