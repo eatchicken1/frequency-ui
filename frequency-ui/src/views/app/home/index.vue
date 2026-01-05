@@ -36,7 +36,31 @@
             <div class="wave">
               <span v-for="i in 5" :key="i"></span>
             </div>
-            <p class="hint">LISTENING…</p>
+            <p v-if="showListening" class="hint">LISTENING…</p>
+            <div class="chat-box" @click.stop>
+              <div class="chat-messages">
+                <div
+                  v-for="(message, index) in messages"
+                  :key="index"
+                  :class="['chat-message', message.role]"
+                >
+                  <span class="role">{{ message.role === 'user' ? 'YOU' : 'AI' }}</span>
+                  <p>{{ message.content }}</p>
+                </div>
+              </div>
+              <div class="chat-input">
+                <input
+                  v-model="userInput"
+                  type="text"
+                  placeholder="输入内容..."
+                  @keyup.enter="sendMessage"
+                  :disabled="isStreaming"
+                />
+                <button class="chat-send" @click="sendMessage" :disabled="isStreaming || !userInput.trim()">
+                  发送
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -111,6 +135,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { streamChat } from '@/api/business'
 import AiCorePanel from './components/AiCorePanel.vue'
 import EchoCore from './components/EchoCore.vue'
 
@@ -125,6 +150,11 @@ const portals = [
 // --- State ---
 const isCoreActive = ref(false)
 const isEchoCoreActive = ref(false)
+const userInput = ref('')
+const messages = ref<{ role: 'user' | 'ai'; content: string }[]>([])
+const isStreaming = ref(false)
+const showListening = ref(true)
+const streamController = ref<AbortController | null>(null)
 
 // --- Actions ---
 const openCore = () => {
@@ -139,6 +169,44 @@ const handlePortalClick = (item: { action?: string }) => {
   if (item.action === 'echo-core') {
     isEchoCoreActive.value = true
   }
+}
+
+const sendMessage = async () => {
+  const content = userInput.value.trim()
+  if (!content || isStreaming.value) return
+
+  userInput.value = ''
+  messages.value.push({ role: 'user', content })
+  messages.value.push({ role: 'ai', content: '' })
+  showListening.value = true
+
+  if (streamController.value) {
+    streamController.value.abort()
+  }
+  const controller = new AbortController()
+  streamController.value = controller
+  isStreaming.value = true
+
+  const currentIndex = messages.value.length - 1
+
+  await streamChat({
+    echoId: '1',
+    query: content,
+    signal: controller.signal,
+    onMessage: (chunk: string) => {
+      showListening.value = false
+      messages.value[currentIndex].content += chunk
+    },
+    onError: (error: Error) => {
+      showListening.value = false
+      messages.value[currentIndex].content = error.message || '系统繁忙，请稍后重试。'
+      isStreaming.value = false
+    },
+    onComplete: () => {
+      showListening.value = false
+      isStreaming.value = false
+    }
+  })
 }
 </script>
 
@@ -196,6 +264,96 @@ const handlePortalClick = (item: { action?: string }) => {
   height: 100%;
   max-width: 2000px;
   margin: 0 auto;
+}
+
+.chat-box {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.chat-messages {
+  padding: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.chat-message .role {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.chat-message.user {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.chat-message.user p {
+  background: #111827;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 12px;
+  max-width: 100%;
+}
+
+.chat-message.ai p {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 8px 10px;
+  border-radius: 12px;
+  max-width: 100%;
+}
+
+.chat-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #e4e4e7;
+  background: #fff;
+}
+
+.chat-input input {
+  flex: 1;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  outline: none;
+}
+
+.chat-send {
+  border: none;
+  background: #111827;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ================= Panels (Shared) ================= */

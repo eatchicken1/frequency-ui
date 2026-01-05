@@ -30,3 +30,59 @@ export const getRecommendedUsers = () => {
         }, 800);
     });
 };
+
+export const streamChat = async ({ echoId, query, onMessage, onError, onComplete, signal }) => {
+    try {
+        const baseURL = request.defaults.baseURL || '';
+        const url = new URL('/business/chat/stream', baseURL || window.location.origin);
+        url.searchParams.set('echoId', echoId);
+        url.searchParams.set('query', query);
+
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(url.toString(), {
+            method: 'GET',
+            headers: {
+                Accept: 'text/event-stream',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            signal
+        });
+
+        if (!response.ok || !response.body) {
+            throw new Error('无法建立对话连接');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            let boundaryIndex = buffer.indexOf('\n\n');
+            while (boundaryIndex !== -1) {
+                const chunk = buffer.slice(0, boundaryIndex);
+                buffer = buffer.slice(boundaryIndex + 2);
+                const lines = chunk.split('\n');
+                const dataLines = lines
+                    .map((line) => line.trim())
+                    .filter((line) => line.startsWith('data:'))
+                    .map((line) => line.replace(/^data:\s?/, ''));
+
+                if (dataLines.length) {
+                    onMessage?.(dataLines.join('\n'));
+                }
+                boundaryIndex = buffer.indexOf('\n\n');
+            }
+        }
+
+        onComplete?.();
+    } catch (error) {
+        if (signal?.aborted) {
+            return;
+        }
+        onError?.(error);
+    }
+};
