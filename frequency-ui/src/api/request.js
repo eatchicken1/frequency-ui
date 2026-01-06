@@ -52,7 +52,8 @@ request.interceptors.response.use(
 
             try {
                 // 使用tokenCheck.ts中的refreshToken函数
-                const response = await refreshToken();
+                // 设置forceLogoutOnFailure为false，避免在未对接后端时强制退出登录
+                const response = await refreshToken({ forceLogoutOnFailure: false });
                 const { access_token } = response;
 
                 onRefreshed(access_token);

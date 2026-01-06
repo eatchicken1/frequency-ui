@@ -38,8 +38,12 @@ export function checkTokenValidity(): boolean {
 
 /**
  * 刷新token
+ * @param options 配置项
+ * @param options.forceLogoutOnFailure 是否在刷新失败时强制退出登录（默认true）
  */
-export async function refreshToken() {
+export async function refreshToken(options: { forceLogoutOnFailure?: boolean } = {}) {
+  const { forceLogoutOnFailure = true } = options;
+  
   if (refreshLock) {
     return Promise.reject('Refresh in progress');
   }
@@ -70,28 +74,52 @@ export async function refreshToken() {
     return { access_token, refresh_token: newRefreshToken };
   } catch (error) {
     refreshLock = false;
-    // token刷新失败，清除所有token
-    Cookies.remove('access_token');
-    Cookies.remove('refresh_token');
-    Cookies.remove('tenant_id');
-    Session.clear();
-    // 跳转到登录页
-    window.location.href = '/';
+    
+    console.error('Token refresh failed:', error);
+    
+    // 只在配置为true且确实是网络请求失败时才清除token和跳转
+    // 如果是本地开发环境或未对接后端，可以设置为false
+    if (forceLogoutOnFailure) {
+      // token刷新失败，清除所有token
+      Cookies.remove('access_token');
+      Cookies.remove('refresh_token');
+      Cookies.remove('tenant_id');
+      Session.clear();
+      // 跳转到登录页
+      window.location.href = '/';
+    }
+    
     return Promise.reject(error);
   }
 }
 
 /**
  * 定期检查token状态
+ * @param options 配置项
+ * @param options.autoRefresh 是否自动刷新token（默认true）
+ * @param options.onError 错误处理函数
  */
-export function startTokenCheck() {
+export function startTokenCheck(options: { 
+  autoRefresh?: boolean;
+  onError?: (error: any) => void;
+} = {}) {
+  const { 
+    autoRefresh = true,
+    onError = (error) => console.error('Token check error:', error)
+  } = options;
+  
   // 每分钟检查一次token
   const interval = setInterval(() => {
-    if (!checkTokenValidity()) {
+    const isValid = checkTokenValidity();
+    
+    if (!isValid && autoRefresh) {
       // token无效，尝试刷新
-      refreshToken().catch(() => {
-        // 刷新失败，已经在refreshToken中处理了
-      });
+      // 设置forceLogoutOnFailure为false，避免在未对接后端时强制退出登录
+      refreshToken({ forceLogoutOnFailure: false })
+        .then(() => {
+          console.log('Token refreshed successfully');
+        })
+        .catch(onError);
     }
   }, 60000);
   
