@@ -136,9 +136,9 @@
             <div class="modal-panel" @click.stop>
               <div class="modal-header">
                 <div class="modal-title">
-                  <span class="modal-dot"></span>
-                  <span>Echo Core</span>
-                </div>
+                <span class="modal-dot"></span>
+                <span>Echo Core</span>
+              </div>
                 <button class="btn-close" @click="closeCore">✕</button>
               </div>
               <div class="modal-body">
@@ -753,12 +753,29 @@ onBeforeUnmount(() => {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.55);
-  backdrop-filter: blur(8px);
+  z-index: 1000;
   display: grid;
   place-items: center;
-  z-index: 1000;
+
+  /* 🌌 AiCorePanel 级别的环境光 + 通透度 */
+  background:
+    radial-gradient(
+      1200px 900px at 70% 15%,
+      rgba(45, 229, 143, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 800px at 20% 85%,
+      rgba(100, 140, 255, 0.18),
+      transparent 60%
+    ),
+    rgba(0, 0, 0, 0.45); /* 🔴 黑度关键 */
+
+  /* 🧊 玻璃态核心 */
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
 }
+
 
 .modal-panel {
   width: min(1080px, calc(100vw - 48px));

@@ -1,20 +1,6 @@
 <template>
   <div v-if="visible" class="ec-modal" role="dialog" aria-modal="true">
-    <div class="ec-backdrop" @click="close" />
-
     <div class="ec-shell">
-      <header class="ec-header">
-        <div class="ec-brand">
-          <span class="ec-dot" />
-          <span class="ec-brand-text">ECHOCORE READY</span>
-        </div>
-
-        <button class="ec-close" type="button" @click="close" aria-label="Close">
-          <span>CLOSE</span>
-          <span class="ec-x">×</span>
-        </button>
-      </header>
-
       <div class="ec-card">
         <div class="ec-card-top">
           <div class="ec-title">
@@ -239,85 +225,43 @@ watch(
 
 <style scoped>
 .ec-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  width: 100%;
+  height: 100%;
 }
-.ec-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-}
+
+
 .ec-shell {
   position: relative;
+  width: 100%;
   height: 100%;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 20px 50px -12px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-.ec-header {
-  height: 64px;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: rgba(255, 255, 255, 0.88);
-}
-.ec-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  letter-spacing: 0.06em;
-}
-.ec-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #55d57a;
-  box-shadow: 0 0 0 4px rgba(85, 213, 122, 0.12);
-}
-.ec-brand-text {
-  font-weight: 600;
-  font-size: 14px;
-}
-.ec-close {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.92);
-  cursor: pointer;
-}
-.ec-x {
-  font-size: 18px;
-  line-height: 1;
-}
+
+
+
 
 .ec-card {
-  width: min(1200px, calc(100vw - 64px));
-  height: min(820px, calc(100vh - 120px));
-  margin: 0 auto 24px;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.25);
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .ec-card-top {
-  padding: 26px 28px 12px;
+  padding: 20px 24px 10px;
 }
 .ec-title {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
 }
 .ec-green {
   width: 10px;
@@ -327,7 +271,7 @@ watch(
   margin-top: 10px;
 }
 .ec-h1 {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: #0f172a;
 }
@@ -340,13 +284,13 @@ watch(
 .ec-card-body {
   flex: 1;
   min-height: 0;
-  padding: 10px 22px 0;
+  padding: 10px 24px 0;
 }
 .ec-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 18px;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 20px;
   min-width: 0;
 }
 .ec-left,
@@ -355,9 +299,10 @@ watch(
 }
 
 .ec-left {
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -379,8 +324,8 @@ watch(
   font-weight: 600;
 }
 .ec-tab.active {
-  background: #0b1220;
-  color: rgba(255, 255, 255, 0.92);
+  background: #111827;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -477,8 +422,8 @@ watch(
   font-weight: 600;
 }
 .ec-chip.active {
-  background: #0b1220;
-  color: rgba(255, 255, 255, 0.92);
+  background: #111827;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -553,9 +498,10 @@ watch(
 }
 
 .ec-right {
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 .ec-right-card {
@@ -619,27 +565,33 @@ watch(
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
   flex: 0 0 auto;
 }
 
 .ec-btn {
-  height: 42px;
-  padding: 0 18px;
-  border-radius: 999px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 20px;
   border: 1px solid transparent;
   cursor: pointer;
-  font-weight: 900;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .ec-btn-ghost {
-  background: rgba(15, 23, 42, 0.04);
-  border-color: rgba(15, 23, 42, 0.10);
-  color: rgba(15, 23, 42, 0.85);
+  background: transparent;
+  border-color: #e5e7eb;
+  color: #111827;
 }
 .ec-btn-primary {
-  background: #0b1220;
-  color: rgba(255, 255, 255, 0.92);
+  background: #111827;
+  color: #ffffff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 980px) {
