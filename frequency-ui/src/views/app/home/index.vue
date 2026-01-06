@@ -178,7 +178,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { streamChat } from '@/api/business'
+import { streamChat, getChatHistory } from '@/api/business'
 import AiCorePanel from './components/AiCorePanel.vue'
 import EchoCore from './components/EchoCore.vue'
 import Cookies from 'js-cookie'
@@ -208,13 +208,93 @@ const streamController = ref<AbortController | null>(null)
 
 let stopCurrentTyping: (() => void) | null = null
 
+// 历史记录相关状态
+const currentPage = ref(1)
+const totalPages = ref(1)
+const isLoadingHistory = ref(false)
+const hasMoreHistory = ref(true)
+
+// 加载聊天历史记录
+const loadChatHistory = async (page = 1, shouldPrepend = false) => {
+  if (isLoadingHistory.value || !hasMoreHistory.value) return
+  
+  try {
+    isLoadingHistory.value = true
+    
+    // 获取会话ID
+    const conversationId = sessionStorage.getItem('currentConversationId')
+    
+    // 调用API获取历史记录
+    const response = await getChatHistory(page, 20, conversationId)
+    
+    if (response && response.records && response.records.length > 0) {
+      // 转换为前端消息格式
+      const historyMessages: ChatMessage[] = response.records.map((record: any) => ({
+        role: record.role === 'user' ? 'user' : 'ai',
+        content: record.content
+      }))
+      
+      if (shouldPrepend) {
+        // 加载更多历史记录时，将新记录添加到数组开头
+        messages.value = [...historyMessages, ...messages.value]
+      } else {
+        // 初始化加载时，直接替换消息数组
+        messages.value = historyMessages
+      }
+      
+      // 更新分页状态
+      currentPage.value = response.current || page
+      totalPages.value = response.pages || 1
+      hasMoreHistory.value = currentPage.value < totalPages.value
+    } else {
+      // 没有更多历史记录
+      hasMoreHistory.value = false
+      
+      // 如果是初始化加载且没有历史记录，保持messages为空数组
+      if (!shouldPrepend) {
+        messages.value = []
+      }
+    }
+  } catch (error) {
+    console.error('加载聊天历史记录失败:', error)
+  } finally {
+    isLoadingHistory.value = false
+  }
+}
+
+// 处理滚动事件，实现滚动到顶部加载更多历史记录
+const handleScroll = () => {
+  const el = chatScrollRef.value
+  if (!el) return
+  
+  // 当滚动到顶部且有更多历史记录时，加载下一页
+  if (el.scrollTop === 0 && hasMoreHistory.value && !isLoadingHistory.value) {
+    loadChatHistory(currentPage.value + 1, true)
+  }
+}
+
 // 点击外部关闭设置菜单
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
+  
+  // 初始化加载历史记录
+  await loadChatHistory(1, false)
+  
+  // 添加滚动事件监听
+  const el = chatScrollRef.value
+  if (el) {
+    el.addEventListener('scroll', handleScroll)
+  }
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
+  
+  // 移除滚动事件监听
+  const el = chatScrollRef.value
+  if (el) {
+    el.removeEventListener('scroll', handleScroll)
+  }
 })
 
 const handleClickOutside = (e: MouseEvent) => {

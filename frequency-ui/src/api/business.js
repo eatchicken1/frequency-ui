@@ -109,3 +109,27 @@ export const streamChat = async ({ echoId, query, conversationId, onMessage, onE
         onError?.(error);
     }
 };
+
+// 获取历史聊天记录
+// 参数：page - 当前页码，size - 每页条数，conversationId - 会话ID（可选）
+export const getChatHistory = async (page = 1, size = 20, conversationId = null) => {
+    try {
+        const params = {
+            current: page,
+            size: size
+        };
+        
+        if (conversationId) {
+            params.sessionId = conversationId;
+        }
+        
+        const response = await request.get('/bizChatHistory/page', {
+            params
+        });
+        
+        return response.data;
+    } catch (error) {
+        console.error('获取聊天历史记录失败:', error);
+        throw error;
+    }
+};
