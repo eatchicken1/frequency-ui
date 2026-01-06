@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { refreshToken } from '../utils/tokenCheck';
 
-let isRefreshing = false;
 let refreshSubscribers = [];
 
 const onRefreshed = (token) => {
@@ -39,7 +39,7 @@ request.interceptors.response.use(
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
+            if (refreshToken.refreshLock) {
                 return new Promise((resolve) => {
                     addRefreshSubscriber((token) => {
                         originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -49,39 +49,18 @@ request.interceptors.response.use(
             }
 
             originalRequest._retry = true;
-            isRefreshing = true;
 
             try {
-                const refreshToken = Cookies.get('refresh_token');
-                if (!refreshToken) {
-                    throw new Error('No refresh token');
-                }
-
-                const response = await axios.post(
-                    `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
-                    { refreshToken },
-                    { skipToken: true }
-                );
-
-                const { access_token, refresh_token: newRefreshToken } = response.data;
-
-                Cookies.set('access_token', access_token, { expires: 7 });
-                if (newRefreshToken) {
-                    Cookies.set('refresh_token', newRefreshToken, { expires: 30 });
-                }
+                // 使用tokenCheck.ts中的refreshToken函数
+                const response = await refreshToken();
+                const { access_token } = response;
 
                 onRefreshed(access_token);
-                isRefreshing = false;
 
                 originalRequest.headers.Authorization = `Bearer ${access_token}`;
                 return request(originalRequest);
             } catch (refreshError) {
-                isRefreshing = false;
-                Cookies.remove('access_token');
-                Cookies.remove('refresh_token');
-                Cookies.remove('tenant_id');
-                Cookies.remove('username');
-                window.location.href = '/';
+                // tokenCheck.ts中已经处理了token清除和跳转
                 return Promise.reject(refreshError);
             }
         }
