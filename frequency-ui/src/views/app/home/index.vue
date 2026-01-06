@@ -21,7 +21,14 @@
           <span class="chip-dot"></span>
           <span>LIVE</span>
         </button>
-        <button class="header-btn">⚙️</button>
+        <div class="settings-menu-container">
+          <button class="header-btn" @click="showSettingsMenu = !showSettingsMenu">⚙️</button>
+          <div v-if="showSettingsMenu" class="settings-menu">
+            <div class="settings-menu-item" @click="handlePersonalInfo">个人信息</div>
+            <div class="settings-menu-item" @click="handleSettings">设置</div>
+            <div class="settings-menu-item" @click="handleLogout">退出登录</div>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -170,10 +177,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { streamChat } from '@/api/business'
 import AiCorePanel from './components/AiCorePanel.vue'
 import EchoCore from './components/EchoCore.vue'
+import Cookies from 'js-cookie'
+import { Session } from '@/utils/storage'
 
 // --- Data ---
 const portals = [
@@ -186,6 +195,7 @@ const portals = [
 // --- State ---
 const isCoreActive = ref(false)
 const isEchoCoreActive = ref(false)
+const showSettingsMenu = ref(false)
 
 type ChatMessage = { role: 'user' | 'ai'; content: string }
 const userInput = ref('')
@@ -197,6 +207,46 @@ const chatScrollRef = ref<HTMLElement | null>(null)
 const streamController = ref<AbortController | null>(null)
 
 let stopCurrentTyping: (() => void) | null = null
+
+// 点击外部关闭设置菜单
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.settings-menu-container')) {
+    showSettingsMenu.value = false
+  }
+}
+
+// 菜单项点击处理函数
+const handlePersonalInfo = () => {
+  showSettingsMenu.value = false
+  // TODO: 实现个人信息功能
+  console.log('个人信息')
+}
+
+const handleSettings = () => {
+  showSettingsMenu.value = false
+  // TODO: 实现设置功能
+  console.log('设置')
+}
+
+const handleLogout = () => {
+  showSettingsMenu.value = false
+  // 清除所有token和session数据
+  Cookies.remove('access_token')
+  Cookies.remove('refresh_token')
+  Cookies.remove('tenant_id')
+  Session.clear()
+  // 跳转到登录页
+  window.location.href = '/'
+}
 
 // 我输入时显示 LISTENING…；AI 回复(流式)时隐藏
 const showListening = computed(() => {
@@ -377,7 +427,49 @@ onBeforeUnmount(() => {
 
 .header-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid #e4e4e7; background: white; font-size: 12px; cursor: default; }
 .chip-dot { width: 6px; height: 6px; border-radius: 99px; background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.12); }
-.header-btn { width: 34px; height: 34px; border-radius: 12px; border: 1px solid #e4e4e7; background: white; cursor: pointer; }
+.header-btn { width: 34px; height: 34px; border-radius: 12px; border: 1px solid #e4e4e7; background: white; cursor: pointer; transition: all 0.2s ease; }
+.header-btn:hover { background: #f9fafb; }
+
+/* 设置菜单样式 */
+.settings-menu-container {
+  position: relative;
+}
+
+.settings-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 180px;
+  background: white;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.settings-menu-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #27272a;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-menu-item:hover {
+  background-color: #f9fafb;
+}
+
+/* 最后一个菜单项添加分隔线 */
+.settings-menu-item:last-child {
+  border-top: 1px solid #f1f1f1;
+  color: #ef4444;
+}
+
+.settings-menu-item:last-child:hover {
+  background-color: #fef2f2;
+}
 
 /* ================= Main Layout ================= */
 .app-main {
