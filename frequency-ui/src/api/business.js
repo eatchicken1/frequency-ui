@@ -32,10 +32,10 @@ export const getRecommendedUsers = () => {
     });
 };
 
-export const streamChat = async ({ echoId, query, conversationId, onMessage, onError, onComplete, signal }) => {
+export const streamChat = async ({ query, conversationId, onMessage, onError, onComplete, signal }) => {
     try {
         const baseURL = request.defaults.baseURL || '';
-        const url = `${baseURL}/business/chat/stream?echoId=${encodeURIComponent(echoId)}&query=${encodeURIComponent(query)}${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}`;
+        const url = `${baseURL}/business/chat/stream?query=${encodeURIComponent(query)}${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}`;
 
         console.log('Stream Chat URL:', url);
 
@@ -120,10 +120,10 @@ export const getChatHistory = async (page = 1, size = 20, conversationId = null)
         };
         
         if (conversationId) {
-            params.sessionId = conversationId;
+            params.conversationId = conversationId;
         }
         
-        const response = await request.get('/bizChatHistory/page', {
+        const response = await request.get('/business/bizChatHistory/page', {
             params
         });
         

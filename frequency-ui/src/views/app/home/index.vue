@@ -418,17 +418,16 @@ const sendMessage = async () => {
   }
 
   try {
-    // 获取或生成会话ID
-    const conversationId = sessionStorage.getItem('currentConversationId') || String(Date.now());
-    sessionStorage.setItem('currentConversationId', conversationId);
+      // 获取或生成会话ID
+      const conversationId = sessionStorage.getItem('currentConversationId') || String(Date.now());
+      sessionStorage.setItem('currentConversationId', conversationId);
 
-    await streamChat({
-      echoId: '1',
-      query: content,
-      conversationId: conversationId,
-      signal: controller.signal,
-      onMessage: (chunk: string) => {
-        fullText += chunk
+      await streamChat({
+        query: content,
+        conversationId: conversationId,
+        signal: controller.signal,
+        onMessage: (chunk: string) => {
+          fullText += chunk
 
         // 第一次收到流式内容，启动打字机
         if (!typingActive) {

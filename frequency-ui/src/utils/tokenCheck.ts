@@ -51,15 +51,30 @@ export async function refreshToken(options: { forceLogoutOnFailure?: boolean } =
   refreshLock = true;
   
   try {
-    const refreshToken = Cookies.get('refresh_token');
-    if (!refreshToken) {
+    const refreshTokenValue = Cookies.get('refresh_token');
+    if (!refreshTokenValue) {
       throw new Error('No refresh token');
     }
+
+    // 获取 Basic Auth 头
+    const basicAuth = 'Basic ' + window.btoa(import.meta.env.VITE_OAUTH2_PASSWORD_CLIENT || 'frequency:frequency_secret');
+
+    // 使用OAuth2的方式刷新令牌
+    const params = new URLSearchParams();
+    params.append('refresh_token', refreshTokenValue);
+    params.append('grant_type', 'refresh_token');
+    params.append('scope', 'server');
     
     const response = await axios.post(
-      `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
-      { refreshToken },
-      { headers: { skipToken: true } }
+      `${import.meta.env.VITE_API_URL || '/api'}/auth/oauth2/token`,
+      params,
+      {
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'skipToken': true
+        }
+      }
     );
     
     const { access_token, refresh_token: newRefreshToken } = response.data;
