@@ -113,7 +113,7 @@ onMounted(async () => {
     
     // 调用 API
     const res = await startVibeCheck(targetId);
-    const data = res.data; // 注意 axios 返回的数据在 data 字段里
+    const data = res.data?.data || res.data;
 
     loading.value = false;
     isLive.value = true;

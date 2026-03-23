@@ -3,12 +3,12 @@ import Cookies from 'js-cookie';
 
 // 1. 获取我的分身信息
 export const getMyProfile = () => {
-    return request.get('/business/echo-profile/my');
+    return request.get('/ai/profile/my');
 };
 
 // 2. 发起同频测试 (Vibe Check)
 export const startVibeCheck = (targetUserId) => {
-    return request.post('/business/ai-experiment/vibe-check', {
+    return request.post('/ai/match/vibe-check', {
         targetUserId: targetUserId,
         rounds: 4 // 默认聊4轮
     }, {
@@ -35,7 +35,7 @@ export const getRecommendedUsers = () => {
 export const streamChat = async ({ query, conversationId, onMessage, onError, onComplete, signal }) => {
     try {
         const baseURL = request.defaults.baseURL || '';
-        const url = `${baseURL}/business/chat/stream?query=${encodeURIComponent(query)}${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}`;
+        const url = `${baseURL}/ai/chat/stream?query=${encodeURIComponent(query)}${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}`;
 
         console.log('Stream Chat URL:', url);
 
@@ -123,11 +123,11 @@ export const getChatHistory = async (page = 1, size = 20, conversationId = null)
             params.conversationId = conversationId;
         }
         
-        const response = await request.get('/business/bizChatHistory/page', {
+        const response = await request.get('/ai/chat/history/page', {
             params
         });
         
-        return response.data;
+        return response.data?.data ?? response.data;
     } catch (error) {
         console.error('获取聊天历史记录失败:', error);
         throw error;
