@@ -1,49 +1,5 @@
 ﻿<template>
   <div class="app-root">
-    <header class="app-header">
-      <div class="header-left">
-        <div class="logo-box">〰️</div>
-        <div class="logo-text">
-          <span class="title">FREQUENCY</span>
-          <span class="subtitle">Console</span>
-        </div>
-      </div>
-
-      <div class="header-center">
-        <div class="header-view">
-          <span class="view-kicker">ACTIVE VIEW</span>
-          <strong>当下</strong>
-        </div>
-      </div>
-
-      <div class="header-right">
-        <nav class="header-nav" aria-label="首页导航">
-          <button
-            v-for="item in homeNavItems"
-            :key="item.path"
-            class="header-nav-pill"
-            :class="{ active: item.path === route.path }"
-            type="button"
-            @click="goToPage(item.path)"
-          >
-            {{ item.label }}
-          </button>
-        </nav>
-        <button class="header-chip">
-          <span class="chip-dot"></span>
-          <span>{{ playing ? 'ECHO RHYTHM' : 'LIVE' }}</span>
-        </button>
-        <div class="settings-menu-container">
-          <button class="header-btn" @click="showSettingsMenu = !showSettingsMenu">⚙️</button>
-          <div v-if="showSettingsMenu" class="settings-menu">
-            <div class="settings-menu-item" @click="handlePersonalInfo">个人信息</div>
-            <div class="settings-menu-item" @click="handleSettings">设置</div>
-            <div class="settings-menu-item" @click="handleLogout">退出登录</div>
-          </div>
-        </div>
-      </div>
-    </header>
-
     <main class="app-main">
       <section class="overview-strip">
         <article class="overview-rail overview-lead">
@@ -226,41 +182,42 @@
           <section class="panel panel-portal">
             <div class="panel-header">
               <div>
-                <p class="kicker">NAVIGATION</p>
-                <h3>页面入口</h3>
+                <p class="kicker">HOT FEATURES</p>
+                <h3>热门功能</h3>
               </div>
+              <span class="tag">{{ hotFeatures.length || 0 }}项</span>
             </div>
 
             <div class="panel-body right-body">
               <div class="portal-grid">
                 <button
-                  v-for="p in pagePortals"
-                  :key="p.name"
+                  v-for="item in hotFeatures"
+                  :key="item.featureCode"
                   class="portal-tile"
                   type="button"
-                  @click="handlePortalClick(p)"
+                  @click="handleHotFeatureClick(item)"
                 >
                   <div class="portal-tile-copy">
-                    <span class="portal-title">{{ p.name }}</span>
-                    <span class="portal-desc">{{ p.desc }}</span>
+                    <span class="portal-title">{{ item.featureName }}</span>
+                    <span class="portal-desc">{{ item.featureDesc || '高频访问功能' }}</span>
                   </div>
-                  <span class="portal-link-text">进入</span>
+                  <span class="portal-link-text">{{ item.actionType === 'action' ? '触发' : '进入' }}</span>
                 </button>
               </div>
 
-              <button class="portal-featured" type="button" @click="handlePortalClick(echoCorePortal)">
+              <button class="portal-featured" type="button" @click="openHotPreset('echo-core')">
                 <div class="portal-featured-copy">
                   <div class="portal-featured-title">
-                    <strong>{{ echoCorePortal.name }}</strong>
+                    <strong>EchoCore Workshop</strong>
                   </div>
-                  <span>{{ echoCorePortal.desc }}</span>
+                  <span>快速进入分身工作台，继续调人格、形象与知识仓。</span>
                 </div>
                 <span class="portal-link-text featured">打开</span>
               </button>
 
               <div class="portal-tip">
                 <span class="portal-tip-dot"></span>
-                <span>顶部导航也可以快速切换到其他页面。</span>
+                <span>热门功能来自后台热度统计与缓存，每 5 分钟自动刷新。</span>
               </div>
             </div>
           </section>
@@ -345,40 +302,40 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { streamChat, getChatHistory, getMyProfile } from '@/api/business'
+import { streamChat, getChatHistory, getMyProfile, listHotFeatures, reportHotFeature } from '@/api/business'
 import AiCorePanel from './components/AiCorePanel.vue'
 import EchoCore from './components/EchoCore.vue'
 import EchoAvatar from './components/EchoAvatar.vue'
 import Cookies from 'js-cookie'
-import { Session } from '@/utils/storage'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { storeToRefs } from 'pinia'
 import { useEchoPersonaStore } from '@/stores/echoPersona'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
 
-const portals = [
-  { icon: '•', name: '当下', desc: '返回当前主界面', path: '/app/home' },
-  { icon: '💕', name: '共鸣', desc: '查看频率匹配与推荐', path: '/app/resonance' },
-  { icon: '🎵', name: '听歌', desc: '打开音乐库与情绪配乐', path: '/app/music' },
-  { icon: '◌', name: '本我', desc: '查看个人状态与设置', path: '/app/me' },
-  { icon: '🧠', name: 'EchoCore', desc: 'AI 分身工作台', action: 'echo-core' }
-]
+type HotFeatureItem = {
+  featureCode: string
+  featureName: string
+  featureDesc?: string
+  actionType?: 'route' | 'action' | string
+  actionValue?: string
+  icon?: string
+  clickCount?: number
+  heatScore?: number
+}
 
-const pagePortals = portals.filter((item) => item.path)
-const echoCorePortal = portals.find((item) => item.action === 'echo-core') || portals[portals.length - 1]
+const hotFeatureFallback: HotFeatureItem[] = [
+  { featureCode: 'home', featureName: '当下', featureDesc: '返回当前主界面', actionType: 'route', actionValue: '/app/home', icon: '•' },
+  { featureCode: 'resonance', featureName: '共鸣', featureDesc: '查看频率匹配与推荐', actionType: 'route', actionValue: '/app/resonance', icon: '💕' },
+  { featureCode: 'music', featureName: '听歌', featureDesc: '打开音乐库与情绪配乐', actionType: 'route', actionValue: '/app/music', icon: '🎵' },
+  { featureCode: 'me', featureName: '本我', featureDesc: '查看个人状态与设置', actionType: 'route', actionValue: '/app/me', icon: '◌' },
+  { featureCode: 'echo-core', featureName: 'EchoCore', featureDesc: 'AI 分身工作台', actionType: 'action', actionValue: 'open-echo-core', icon: '🧠' }
+]
 
 const isCoreActive = ref(false)
 const isEchoCoreActive = ref(false)
-const showSettingsMenu = ref(false)
-const route = useRoute()
 const router = useRouter()
-const homeNavItems = [
-  { path: '/app/home', label: '当下' },
-  { path: '/app/resonance', label: '共鸣' },
-  { path: '/app/music', label: '听歌' },
-  { path: '/app/me', label: '本我' }
-]
+const hotFeatures = ref<HotFeatureItem[]>([...hotFeatureFallback])
 
 const echoStore = useEchoPersonaStore()
 const musicPlayer = useMusicPlayerStore()
@@ -561,8 +518,8 @@ const handleScroll = () => {
 }
 
 onMounted(async () => {
-  document.addEventListener('click', handleClickOutside)
   await syncProfileFromBackend()
+  await loadHotFeatures()
   await loadChatHistory(1, false)
   const el = chatScrollRef.value
   if (el) el.addEventListener('scroll', handleScroll)
@@ -577,43 +534,10 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
   const el = chatScrollRef.value
   if (el) el.removeEventListener('scroll', handleScroll)
   stopCurrentTyping?.()
   if (streamController.value) streamController.value.abort()
-})
-
-const handleClickOutside = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-  if (!target.closest('.settings-menu-container')) {
-    showSettingsMenu.value = false
-  }
-}
-
-const handlePersonalInfo = () => {
-  showSettingsMenu.value = false
-  router.push('/app/me')
-}
-
-const handleSettings = () => {
-  showSettingsMenu.value = false
-  showToast('设置功能正在完善中，先跳转到个人页')
-  router.push('/app/me')
-}
-
-const handleLogout = () => {
-  showSettingsMenu.value = false
-  Cookies.remove('access_token')
-  Cookies.remove('refresh_token')
-  Cookies.remove('tenant_id')
-  Session.clear()
-  window.location.href = '/'
-}
-
-const showListening = computed(() => {
-  if (isStreaming.value) return false
-  return isInputFocused.value || userInput.value.trim().length > 0
 })
 
 const scrollToBottom = async () => {
@@ -641,19 +565,61 @@ const closeCore = () => {
   isCoreActive.value = false
 }
 
-const handlePortalClick = (item: { action?: string; name?: string; path?: string }) => {
-  if (item.action === 'echo-core') {
-    isEchoCoreActive.value = true
-    return
-  }
-  if (item.path) {
-    router.push(item.path)
+const loadHotFeatures = async () => {
+  try {
+    const res = await listHotFeatures(6)
+    const data = res?.data?.data || res?.data || []
+    if (Array.isArray(data) && data.length) {
+      hotFeatures.value = data.map((item: any) => ({
+        featureCode: String(item.featureCode || ''),
+        featureName: String(item.featureName || '未命名功能'),
+        featureDesc: String(item.featureDesc || ''),
+        actionType: String(item.actionType || 'route'),
+        actionValue: String(item.actionValue || ''),
+        icon: String(item.icon || ''),
+        clickCount: Number(item.clickCount || 0),
+        heatScore: Number(item.heatScore || 0)
+      }))
+      return
+    }
+    hotFeatures.value = [...hotFeatureFallback]
+  } catch (error) {
+    console.warn('加载热门功能失败，使用兜底配置', error)
+    hotFeatures.value = [...hotFeatureFallback]
   }
 }
 
-const goToPage = (path: string) => {
-  if (path !== route.path) {
-    router.push(path)
+const reportHotFeatureClick = async (item: HotFeatureItem) => {
+  try {
+    await reportHotFeature({
+      featureCode: item.featureCode,
+      featureName: item.featureName,
+      featureDesc: item.featureDesc,
+      actionType: item.actionType,
+      actionValue: item.actionValue,
+      icon: item.icon
+    })
+  } catch (error) {
+    console.warn('上报热门功能点击失败', error)
+  }
+}
+
+const openHotPreset = async (featureCode: string) => {
+  const preset = hotFeatureFallback.find((item) => item.featureCode === featureCode)
+  if (!preset) return
+  await handleHotFeatureClick(preset)
+}
+
+const handleHotFeatureClick = async (item: HotFeatureItem) => {
+  await reportHotFeatureClick(item)
+  const actionType = String(item.actionType || 'route')
+  const actionValue = String(item.actionValue || '')
+  if (actionType === 'action' || actionValue === 'open-echo-core') {
+    isEchoCoreActive.value = true
+    return
+  }
+  if (actionValue) {
+    router.push(actionValue)
   }
 }
 
@@ -826,212 +792,6 @@ const formatTime = (seconds: number) => {
   overflow: hidden;
 }
 
-.app-header {
-  height: 64px;
-  flex-shrink: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(18px) saturate(130%);
-  border-bottom: 1px solid rgba(221, 230, 240, 0.88);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-}
-
-.logo-box {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 16px 28px -22px rgba(15, 23, 42, 0.82);
-}
-
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-
-.logo-text .title {
-  font-weight: 900;
-  font-size: 14px;
-  letter-spacing: -0.02em;
-}
-
-.logo-text .subtitle {
-  font-size: 10px;
-  color: #64748b;
-  letter-spacing: 0.12em;
-}
-
-.header-center {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.header-view {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
-}
-
-.view-kicker {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.header-view strong {
-  font-size: 18px;
-  line-height: 1;
-  color: #0f172a;
-  letter-spacing: -0.03em;
-}
-
-.header-nav {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.header-nav-pill {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(221, 230, 240, 0.92);
-  background: rgba(255, 255, 255, 0.82);
-  color: #475569;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-}
-
-.header-nav-pill:hover {
-  transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.84);
-  color: #0f172a;
-  box-shadow: 0 10px 20px -18px rgba(15, 23, 42, 0.34);
-}
-
-.header-nav-pill.active {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  border-color: #0f172a;
-  color: #fff;
-  box-shadow: 0 18px 28px -22px rgba(15, 23, 42, 0.64);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 99px;
-  background: #22c55e;
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16);
-}
-
-.header-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(220, 228, 239, 0.92);
-  background: rgba(255, 255, 255, 0.88);
-  font-size: 11px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.chip-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 99px;
-  background: #ef4444;
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
-}
-
-.header-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  border: 1px solid rgba(220, 228, 239, 0.92);
-  background: rgba(255, 255, 255, 0.88);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.header-btn:hover {
-  background: #fff;
-  transform: translateY(-1px);
-}
-
-.settings-menu-container {
-  position: relative;
-}
-
-.settings-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  width: 180px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(220, 228, 239, 0.92);
-  border-radius: 12px;
-  box-shadow: 0 20px 36px -28px rgba(2, 6, 23, 0.26);
-  backdrop-filter: blur(14px);
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.settings-menu-item {
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #1f2937;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.settings-menu-item:hover {
-  background-color: #f8fafc;
-}
-
-.settings-menu-item:last-child {
-  border-top: 1px solid #f1f5f9;
-  color: #ef4444;
-}
-
-.settings-menu-item:last-child:hover {
-  background-color: #fef2f2;
-}
-
 .app-main {
   flex: 1;
   min-height: 0;
@@ -1044,10 +804,10 @@ const formatTime = (seconds: number) => {
 .overview-strip {
   width: min(2000px, 100%);
   flex-shrink: 0;
-  margin: 0 auto 10px;
+  margin: 0 auto 8px;
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) repeat(3, minmax(220px, 0.55fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .overview-copy {
@@ -1065,18 +825,18 @@ const formatTime = (seconds: number) => {
 }
 
 .overview-copy h2 {
-  margin: 2px 0 0;
+  margin: 1px 0 0;
   color: #0f172a;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.08;
   letter-spacing: -0.04em;
 }
 
 .overview-copy p {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   color: #526173;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.45;
   max-width: 520px;
 }
 
@@ -1090,11 +850,11 @@ const formatTime = (seconds: number) => {
   background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 18px 38px -34px rgba(15, 23, 42, 0.34);
   backdrop-filter: blur(16px);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: grid;
   align-content: center;
-  gap: 4px;
-  min-height: 88px;
+  gap: 3px;
+  min-height: 72px;
 }
 
 .overview-lead {
@@ -1107,18 +867,18 @@ const formatTime = (seconds: number) => {
 .overview-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .overview-btn {
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 30px;
+  padding: 0 10px;
   border-radius: 11px;
   border: 1px solid rgba(197, 210, 226, 0.94);
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   color: #0f172a;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -1139,7 +899,7 @@ const formatTime = (seconds: number) => {
 
 .overview-rail strong {
   color: #0f172a;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.12;
   letter-spacing: -0.03em;
 }
@@ -1147,7 +907,7 @@ const formatTime = (seconds: number) => {
 .overview-rail small {
   color: #64748b;
   font-size: 10px;
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 .layout-grid {
@@ -2096,15 +1856,6 @@ const formatTime = (seconds: number) => {
     margin-top: 10px;
   }
 
-  .header-center {
-    min-width: 0;
-  }
-
-  .header-nav {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
   .layout-grid {
     flex: none;
     grid-template-columns: 1fr 1.06fr;
@@ -2140,22 +1891,6 @@ const formatTime = (seconds: number) => {
   .overview-actions {
     width: 100%;
     flex-direction: column;
-  }
-
-  .app-header {
-    padding: 0 12px;
-  }
-
-  .header-center {
-    flex: 1;
-    justify-content: flex-start;
-  }
-
-  .header-nav {
-    gap: 6px;
-    overflow-x: auto;
-    max-width: 100%;
-    padding-bottom: 2px;
   }
 
   .layout-grid {

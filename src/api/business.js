@@ -65,6 +65,18 @@ export const getMyOverview = () => {
     return request.get('/ai/social/me/overview');
 };
 
+export const getAiRuntimeOverview = () => {
+    return request.get('/ai/platform/runtime');
+};
+
+export const listHotFeatures = (limit = 6) => {
+    return request.get('/ai/hot-feature/list', { params: { limit } });
+};
+
+export const reportHotFeature = (payload) => {
+    return request.post('/ai/hot-feature/report', payload);
+};
+
 export const uploadMusicTrack = (file, durationSeconds = 0) => {
     const formData = new FormData();
     formData.append('file', file);
