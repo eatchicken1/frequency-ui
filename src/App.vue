@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
 import { startTokenCheck } from './utils/tokenCheck'
+import { useMusicPlayerStore } from '@/stores/musicPlayer'
 
 let tokenCheckInterval = null
+const musicPlayer = useMusicPlayerStore()
 
 onMounted(() => {
   // 启动token定时检查
@@ -19,6 +21,8 @@ onMounted(() => {
       // 例如：ElMessage.error('Token刷新失败，请检查网络连接')
     }
   })
+
+  void musicPlayer.loadRemoteTracks()
 })
 
 onUnmounted(() => {
@@ -33,4 +37,6 @@ onUnmounted(() => {
   <router-view />
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Music dock moved into Home STANDBY panel. Keep app-level style placeholder for future global layout tokens. */
+</style>

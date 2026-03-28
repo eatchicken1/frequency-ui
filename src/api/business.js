@@ -6,6 +6,26 @@ export const getMyProfile = () => {
     return request.get('/ai/profile/my');
 };
 
+// 1.1 更新我的分身信息
+export const updateMyProfile = (payload) => {
+    return request.put('/ai/profile/my', payload);
+};
+
+// 1.2 上传并训练知识文件
+export const trainKnowledgeFile = (file, userId) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (userId !== undefined && userId !== null && userId !== '') {
+        formData.append('userId', String(userId));
+    }
+    return request.post('/ai/bizKnowledgeBase/train', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+        timeout: 120000
+    });
+};
+
 // 2. 发起同频测试 (Vibe Check)
 export const startVibeCheck = (targetUserId) => {
     return request.post('/ai/match/vibe-check', {
@@ -69,10 +89,13 @@ export const fetchMusicTrackBlob = (trackId) => {
     });
 };
 
-export const streamChat = async ({ query, conversationId, onMessage, onError, onComplete, signal }) => {
+export const streamChat = async ({ query, conversationId, echoId, onMessage, onError, onComplete, signal }) => {
     try {
         const baseURL = request.defaults.baseURL || '';
-        const url = `${baseURL}/ai/chat/stream?query=${encodeURIComponent(query)}${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}`;
+        const url =
+            `${baseURL}/ai/chat/stream?query=${encodeURIComponent(query)}` +
+            `${conversationId ? `&conversationId=${encodeURIComponent(conversationId)}` : ''}` +
+            `${echoId !== undefined && echoId !== null && echoId !== '' ? `&echoId=${encodeURIComponent(String(echoId))}` : ''}`;
 
         console.log('Stream Chat URL:', url);
 

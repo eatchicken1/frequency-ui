@@ -15,9 +15,9 @@ export function checkTokenValidity(): boolean {
     return false;
   }
   
-  // 简单检查token格式
+  // 当前项目后端默认发放的是不透明 token（非 JWT），无法在前端解析 exp；只要存在即视为有效
   if (!token.includes('.')) {
-    return false;
+    return true;
   }
   
   try {
@@ -126,8 +126,10 @@ export function startTokenCheck(options: {
   // 每分钟检查一次token
   const interval = setInterval(() => {
     const isValid = checkTokenValidity();
-    
-    if (!isValid && autoRefresh) {
+    const refreshTokenValue = Cookies.get('refresh_token');
+
+    // 无 refresh_token 时不做刷新重试，避免持续报错干扰业务请求
+    if (!isValid && autoRefresh && refreshTokenValue) {
       // token无效，尝试刷新
       // 设置forceLogoutOnFailure为false，避免在未对接后端时强制退出登录
       refreshToken({ forceLogoutOnFailure: false })

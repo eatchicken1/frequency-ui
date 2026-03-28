@@ -37,8 +37,10 @@ request.interceptors.response.use(
     },
     async error => {
         const originalRequest = error.config;
+        const status = error.response?.status;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // Pig 资源服务对无效/过期 token 会返回 424（FAILED_DEPENDENCY）
+        if ((status === 401 || status === 424) && !originalRequest._retry) {
             if (refreshToken.refreshLock) {
                 return new Promise((resolve) => {
                     addRefreshSubscriber((token) => {
