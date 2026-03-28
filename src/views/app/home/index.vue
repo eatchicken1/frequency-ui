@@ -200,9 +200,15 @@
                   <div class="portal-tile-copy">
                     <span class="portal-title">{{ item.featureName }}</span>
                     <span class="portal-desc">{{ item.featureDesc || '高频访问功能' }}</span>
+                    <span class="portal-heat">热度 {{ item.heatScore || item.clickCount || 0 }}</span>
                   </div>
                   <span class="portal-link-text">{{ item.actionType === 'action' ? '触发' : '进入' }}</span>
                 </button>
+              </div>
+
+              <div v-if="!hotFeatures.length" class="portal-empty">
+                <strong>热门功能正在计算中</strong>
+                <span>稍后会根据全站访问热度自动补齐。</span>
               </div>
 
               <button class="portal-featured" type="button" @click="openHotPreset('echo-core')">
@@ -1687,6 +1693,21 @@ const formatTime = (seconds: number) => {
   line-height: 1.5;
 }
 
+.portal-heat {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 3px;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 223, 235, 0.9);
+  background: rgba(245, 248, 252, 0.94);
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .portal-link-text {
   flex-shrink: 0;
   color: #64748b;
@@ -1732,6 +1753,26 @@ const formatTime = (seconds: number) => {
 
 .portal-link-text.featured {
   color: #0f172a;
+}
+
+.portal-empty {
+  border: 1px dashed rgba(214, 223, 235, 0.96);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px 12px;
+  display: grid;
+  gap: 3px;
+}
+
+.portal-empty strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.portal-empty span {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .portal-tip {
