@@ -10,11 +10,25 @@
       </div>
 
       <div class="header-center">
-        <span class="status-dot"></span>
-        <span>SYSTEM ONLINE</span>
+        <div class="header-view">
+          <span class="view-kicker">ACTIVE VIEW</span>
+          <strong>当下</strong>
+        </div>
       </div>
 
       <div class="header-right">
+        <nav class="header-nav" aria-label="首页导航">
+          <button
+            v-for="item in homeNavItems"
+            :key="item.path"
+            class="header-nav-pill"
+            :class="{ active: item.path === route.path }"
+            type="button"
+            @click="goToPage(item.path)"
+          >
+            {{ item.label }}
+          </button>
+        </nav>
         <button class="header-chip">
           <span class="chip-dot"></span>
           <span>{{ playing ? 'ECHO RHYTHM' : 'LIVE' }}</span>
@@ -32,7 +46,7 @@
 
     <main class="app-main">
       <section class="overview-strip">
-        <article class="overview-card hero">
+        <article class="overview-rail overview-lead">
           <div class="overview-copy">
             <p class="overview-kicker">CURRENT FREQUENCY</p>
             <h2>{{ profile.name }} 正在待机</h2>
@@ -41,37 +55,34 @@
               <strong>{{ profile.speechStyle }}</strong>，{{ statusText }}。
             </p>
           </div>
+
           <div class="overview-actions">
             <button class="overview-btn primary" @click="openCore">唤醒 Runtime</button>
             <button class="overview-btn" @click="isEchoCoreActive = true">打开 Workshop</button>
           </div>
         </article>
 
-        <article class="overview-card metric">
+        <article class="overview-rail">
           <span class="overview-label">状态</span>
           <strong>{{ isStreaming ? '对话流进行中' : '系统在线待机' }}</strong>
           <small>{{ currentTrack ? '音乐氛围已接入' : '当前无音乐输入' }}</small>
         </article>
 
-        <article class="overview-card metric">
+        <article class="overview-rail">
           <span class="overview-label">知识库</span>
           <strong>{{ profile.knowledgeCount || 0 }} 份资料</strong>
           <small>{{ profile.expertise || '等待补充擅长领域' }}</small>
         </article>
 
-        <article class="overview-card mission">
-          <span class="overview-label">今天可以做什么</span>
-          <ul class="mission-list">
-            <li v-for="item in dailyMissions" :key="item.title">
-              <strong>{{ item.title }}</strong>
-              <span>{{ item.desc }}</span>
-            </li>
-          </ul>
+        <article class="overview-rail">
+          <span class="overview-label">今日提示</span>
+          <strong>{{ dailyMissions[0]?.title }}</strong>
+          <small>{{ dailyMissions[0]?.desc }}</small>
         </article>
       </section>
 
       <div class="layout-grid">
-        <section class="panel">
+        <section class="panel panel-signal">
           <div class="panel-header">
             <div>
               <p class="kicker">SIGNAL MONITOR</p>
@@ -81,8 +92,15 @@
           </div>
 
           <div class="panel-body signal-body">
-            <div class="listening-holder">
-              <p class="hint" :class="{ show: showListening }">LISTENING...</p>
+            <div class="signal-console">
+              <div class="signal-console-chip">
+                <span>状态</span>
+                <strong>{{ isStreaming ? '正在回应' : isLoadingHistory ? '同步历史中' : '对话就绪' }}</strong>
+              </div>
+              <div class="signal-console-chip ghost">
+                <span>模式</span>
+                <strong>{{ currentTrack ? '配乐联动' : '纯对话模式' }}</strong>
+              </div>
             </div>
 
             <div class="quick-row">
@@ -99,9 +117,15 @@
 
             <div class="chat-box" @click.stop>
               <div ref="chatScrollRef" class="chat-messages">
-                <div v-if="isLoadingHistory && !messages.length" class="chat-empty">加载历史记录中...</div>
-                <div v-else-if="!messages.length" class="chat-empty">
-                  点击上方快捷交互，或输入内容和 {{ profile.name }} 开始对话。
+                <div v-if="isLoadingHistory && !messages.length" class="chat-empty-panel loading">
+                  <span class="chat-empty-kicker">SYNCING HISTORY</span>
+                  <strong>正在同步过往对话</strong>
+                  <p>稍等片刻，我们把历史会话重新接回当前信号面板。</p>
+                </div>
+                <div v-else-if="!messages.length" class="chat-empty-panel">
+                  <span class="chat-empty-kicker">SIGNAL READY</span>
+                  <strong>从一句简单的话开始</strong>
+                  <p>点击上方快捷交互，或者直接输入你此刻想聊的事情。</p>
                 </div>
 
                 <div v-if="isLoadingHistory && messages.length" class="history-tip">正在加载更早对话...</div>
@@ -123,25 +147,32 @@
               </div>
 
               <div class="chat-input">
-                <input
-                  v-model="userInput"
-                  type="text"
-                  :placeholder="`和 ${profile.name} 说点什么...`"
-                  @focus="isInputFocused = true"
-                  @blur="isInputFocused = false"
-                  @keyup.enter="sendMessage"
-                  :disabled="isStreaming"
-                />
-                <button class="chat-send" @click="sendMessage" :disabled="isStreaming || !userInput.trim()">
-                  发送
-                </button>
-                <button v-if="isStreaming" class="chat-stop" @click="stopStreaming">停止</button>
+                <div class="chat-input-meta">
+                  <span>{{ isStreaming ? '回应生成中' : '按 Enter 发送' }}</span>
+                  <span>{{ currentTrack ? '音乐已接入' : '未接入配乐' }}</span>
+                </div>
+
+                <div class="chat-input-row">
+                  <input
+                    v-model="userInput"
+                    type="text"
+                    :placeholder="`和 ${profile.name} 说点什么...`"
+                    @focus="isInputFocused = true"
+                    @blur="isInputFocused = false"
+                    @keyup.enter="sendMessage"
+                    :disabled="isStreaming"
+                  />
+                  <button class="chat-send" @click="sendMessage" :disabled="isStreaming || !userInput.trim()">
+                    发送
+                  </button>
+                  <button v-if="isStreaming" class="chat-stop" @click="stopStreaming">停止</button>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="panel">
+        <section class="panel panel-core">
           <div class="panel-header">
             <div>
               <p class="kicker">STANDBY STAGE</p>
@@ -152,43 +183,108 @@
 
           <div class="panel-body core-body">
             <div class="core-stage">
-              <EchoAvatar
-                :name="profile.name"
-                :mood="profile.mood"
-                :palette="profile.palette"
-                :species="profile.species"
-                :accessory="profile.accessory"
-                :speaking="isStreaming || playing"
-                :show-label="true"
-              />
-            </div>
-
-            <div class="core-meta">
-              <div class="meta-row"><span>Signal</span><strong>{{ isStreaming ? 'Streaming' : 'Stable' }}</strong></div>
-              <div class="meta-row"><span>Persona</span><strong>{{ profile.speechStyle }}</strong></div>
-              <div class="meta-row"><span>Status</span><strong>{{ statusText }}</strong></div>
-            </div>
-
-            <div class="core-actions">
-              <button class="btn-wake" @click="openCore">⚡ WAKE ECHO</button>
-              <button class="btn-echo-core" @click="isEchoCoreActive = true">🧩 CUSTOM ECHO</button>
-            </div>
-
-            <section class="music-dock">
-              <div class="dock-title-row">
-                <div>
-                  <p class="kicker">RESONANCE DOCK</p>
-                  <h4>{{ currentTrack?.name || '尚未选择歌曲' }}</h4>
-                </div>
-                <button class="dock-jump" @click="router.push('/app/music')">音乐库</button>
+              <div class="stage-aura"></div>
+              <div class="stage-topline">
+                <span class="stage-chip primary">{{ isStreaming ? 'STREAMING' : 'STANDBY' }}</span>
+                <span class="stage-chip">{{ currentTrack ? 'MUSIC LINKED' : 'SILENT FIELD' }}</span>
               </div>
 
-              <p class="dock-sub">
-                {{ currentTrack ? `${formatTime(currentTime)} / ${formatTime(duration)}` : '把音乐融合进 Echo 对话氛围中。' }}
-              </p>
+              <div class="stage-center">
+                <EchoAvatar
+                  :name="profile.name"
+                  :mood="profile.mood"
+                  :palette="profile.palette"
+                  :species="profile.species"
+                  :accessory="profile.accessory"
+                  :speaking="isStreaming || playing"
+                  :show-label="false"
+                />
+              </div>
 
-              <div v-if="currentTrack" class="dock-progress-wrap">
+              <div class="stage-footer">
+                <div class="stage-footer-copy">
+                  <strong>{{ profile.name }}</strong>
+                  <span>{{ profile.speechStyle }} · {{ currentTrack ? currentTrack.name : '静默待机中' }}</span>
+                </div>
+
+                <div class="stage-footer-actions">
+                  <button class="stage-mini-action" @click="openCore">Runtime</button>
+                  <button class="stage-mini-action ghost" @click="isEchoCoreActive = true">Workshop</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="core-meta-grid">
+              <div class="core-meta-chip"><span>Signal</span><strong>{{ isStreaming ? 'Streaming' : 'Stable' }}</strong></div>
+              <div class="core-meta-chip"><span>Persona</span><strong>{{ profile.speechStyle }}</strong></div>
+              <div class="core-meta-chip"><span>Status</span><strong>{{ statusText }}</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="sidebar-stack">
+          <section class="panel panel-portal">
+            <div class="panel-header">
+              <div>
+                <p class="kicker">NAVIGATION</p>
+                <h3>页面入口</h3>
+              </div>
+            </div>
+
+            <div class="panel-body right-body">
+              <div class="portal-grid">
+                <button
+                  v-for="p in pagePortals"
+                  :key="p.name"
+                  class="portal-tile"
+                  type="button"
+                  @click="handlePortalClick(p)"
+                >
+                  <div class="portal-tile-copy">
+                    <span class="portal-title">{{ p.name }}</span>
+                    <span class="portal-desc">{{ p.desc }}</span>
+                  </div>
+                  <span class="portal-link-text">进入</span>
+                </button>
+              </div>
+
+              <button class="portal-featured" type="button" @click="handlePortalClick(echoCorePortal)">
+                <div class="portal-featured-copy">
+                  <div class="portal-featured-title">
+                    <strong>{{ echoCorePortal.name }}</strong>
+                  </div>
+                  <span>{{ echoCorePortal.desc }}</span>
+                </div>
+                <span class="portal-link-text featured">打开</span>
+              </button>
+
+              <div class="portal-tip">
+                <span class="portal-tip-dot"></span>
+                <span>顶部导航也可以快速切换到其他页面。</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel panel-resonance">
+            <div class="panel-header">
+              <div>
+                <p class="kicker">RESONANCE DECK</p>
+                <h3>{{ currentTrack?.name || '情绪配乐与今日节奏' }}</h3>
+              </div>
+              <button class="dock-jump" @click="router.push('/app/music')">音乐库</button>
+            </div>
+
+            <div class="panel-body resonance-body">
+              <div v-if="currentTrack" class="music-dock">
+                <div class="dock-topline">
+                  <span class="dock-status">{{ playing ? 'PLAYING' : 'PAUSED' }}</span>
+                  <span class="dock-track">{{ currentTrack.name }}</span>
+                </div>
+
+                <p class="resonance-sub">{{ `${formatTime(currentTime)} / ${formatTime(duration)} · 当前音乐正在驱动 Echo 氛围。` }}</p>
+
                 <input v-model.number="seekPercentProxy" class="dock-progress" type="range" min="0" max="100" step="0.1" />
+
                 <div class="dock-controls">
                   <button class="dock-btn" @click="prevTrackFromDock">上一首</button>
                   <button class="dock-btn primary" @click="toggleMusicFromDock">{{ playing ? '暂停' : '播放' }}</button>
@@ -197,53 +293,21 @@
               </div>
 
               <div v-else class="dock-empty">
+                <div class="dock-empty-copy">
+                  <strong>当前没有接入配乐</strong>
+                  <span>添加一首歌，让 Echo 的待机区和聊天区都带上节奏感。</span>
+                </div>
                 <button class="dock-btn primary" @click="router.push('/app/music')">去添加歌曲</button>
               </div>
-            </section>
-          </div>
-        </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="kicker">PORTAL</p>
-              <h3>入口与分身状态</h3>
-            </div>
-          </div>
-
-          <div class="panel-body right-body">
-            <div class="mini-identity">
-              <EchoAvatar
-                :name="profile.name"
-                :mood="profile.mood"
-                :palette="profile.palette"
-                :species="profile.species"
-                :accessory="profile.accessory"
-                :show-label="false"
-                :small="true"
-                :speaking="isStreaming"
-              />
-
-              <div class="identity-meta">
-                <p class="identity-name">{{ profile.name }}</p>
-                <p class="identity-detail">{{ profile.expertise || '暂无擅长领域设置' }}</p>
+              <div class="resonance-suggestion">
+                <span class="overview-label">今日提示</span>
+                <strong>{{ dailyMissions[1]?.title }}</strong>
+                <small>{{ dailyMissions[1]?.desc }}</small>
               </div>
             </div>
-
-            <ul class="portal-list">
-              <li v-for="p in portals" :key="p.name" class="portal-item" @click="handlePortalClick(p)">
-                <div class="portal-left">
-                  <span class="portal-icon">{{ p.icon }}</span>
-                  <div class="portal-text">
-                    <div class="portal-title">{{ p.name }}</div>
-                    <div class="portal-desc">{{ p.desc }}</div>
-                  </div>
-                </div>
-                <span class="portal-arrow">›</span>
-              </li>
-            </ul>
-          </div>
-        </section>
+          </section>
+        </aside>
       </div>
 
       <Teleport to="body">
@@ -287,24 +351,34 @@ import EchoCore from './components/EchoCore.vue'
 import EchoAvatar from './components/EchoAvatar.vue'
 import Cookies from 'js-cookie'
 import { Session } from '@/utils/storage'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { storeToRefs } from 'pinia'
 import { useEchoPersonaStore } from '@/stores/echoPersona'
 import { useMusicPlayerStore } from '@/stores/musicPlayer'
 
 const portals = [
-  { icon: '💕', name: 'Resonance', desc: 'Find Soulmate' },
-  { icon: '🎓', name: 'Campus', desc: 'School Echoes' },
-  { icon: '🎵', name: 'Music', desc: 'Echo Sound Dock' },
-  { icon: '🔥', name: 'News', desc: 'Trending' },
+  { icon: '•', name: '当下', desc: '返回当前主界面', path: '/app/home' },
+  { icon: '💕', name: '共鸣', desc: '查看频率匹配与推荐', path: '/app/resonance' },
+  { icon: '🎵', name: '听歌', desc: '打开音乐库与情绪配乐', path: '/app/music' },
+  { icon: '◌', name: '本我', desc: '查看个人状态与设置', path: '/app/me' },
   { icon: '🧠', name: 'EchoCore', desc: 'AI 分身工作台', action: 'echo-core' }
 ]
+
+const pagePortals = portals.filter((item) => item.path)
+const echoCorePortal = portals.find((item) => item.action === 'echo-core') || portals[portals.length - 1]
 
 const isCoreActive = ref(false)
 const isEchoCoreActive = ref(false)
 const showSettingsMenu = ref(false)
+const route = useRoute()
 const router = useRouter()
+const homeNavItems = [
+  { path: '/app/home', label: '当下' },
+  { path: '/app/resonance', label: '共鸣' },
+  { path: '/app/music', label: '听歌' },
+  { path: '/app/me', label: '本我' }
+]
 
 const echoStore = useEchoPersonaStore()
 const musicPlayer = useMusicPlayerStore()
@@ -567,21 +641,19 @@ const closeCore = () => {
   isCoreActive.value = false
 }
 
-const handlePortalClick = (item: { action?: string; name?: string }) => {
+const handlePortalClick = (item: { action?: string; name?: string; path?: string }) => {
   if (item.action === 'echo-core') {
     isEchoCoreActive.value = true
     return
   }
-  if (item.name === 'Resonance') {
-    router.push('/app/resonance')
-    return
+  if (item.path) {
+    router.push(item.path)
   }
-  if (item.name === 'Music') {
-    router.push('/app/music')
-    return
-  }
-  if (item.name === 'Campus' || item.name === 'News') {
-    router.push('/app/me')
+}
+
+const goToPage = (path: string) => {
+  if (path !== route.path) {
+    router.push(path)
   }
 }
 
@@ -767,11 +839,19 @@ const formatTime = (seconds: number) => {
   padding: 0 32px;
 }
 
-.header-left,
-.header-right {
+.header-left {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
 .logo-box {
@@ -806,11 +886,66 @@ const formatTime = (seconds: number) => {
 .header-center {
   display: flex;
   align-items: center;
+  min-width: 0;
+}
+
+.header-view {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.view-kicker {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.header-view strong {
+  font-size: 18px;
+  line-height: 1;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+}
+
+.header-nav {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-nav-pill {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(221, 230, 240, 0.92);
+  background: rgba(255, 255, 255, 0.82);
+  color: #475569;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.header-nav-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.84);
   color: #0f172a;
+  box-shadow: 0 10px 20px -18px rgba(15, 23, 42, 0.34);
+}
+
+.header-nav-pill.active {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-color: #0f172a;
+  color: #fff;
+  box-shadow: 0 18px 28px -22px rgba(15, 23, 42, 0.64);
 }
 
 .status-dot {
@@ -900,7 +1035,7 @@ const formatTime = (seconds: number) => {
 .app-main {
   flex: 1;
   min-height: 0;
-  padding: 18px 30px 24px;
+  padding: 18px 24px 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -909,26 +1044,10 @@ const formatTime = (seconds: number) => {
 .overview-strip {
   width: min(2000px, 100%);
   flex-shrink: 0;
-  margin: 0 auto 18px;
+  margin: 0 auto 10px;
   display: grid;
-  grid-template-columns: 1.2fr 0.72fr 0.72fr 1fr;
-  gap: 14px;
-}
-
-.overview-card {
-  border-radius: 22px;
-  border: 1px solid rgba(223, 231, 240, 0.8);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 18px 38px -34px rgba(15, 23, 42, 0.42);
-  backdrop-filter: blur(16px);
-  padding: 16px;
-}
-
-.overview-card.hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1.55fr) repeat(3, minmax(220px, 0.55fr));
+  gap: 10px;
 }
 
 .overview-copy {
@@ -946,18 +1065,18 @@ const formatTime = (seconds: number) => {
 }
 
 .overview-copy h2 {
-  margin: 6px 0 0;
+  margin: 2px 0 0;
   color: #0f172a;
-  font-size: 28px;
-  line-height: 1.02;
+  font-size: 18px;
+  line-height: 1.08;
   letter-spacing: -0.04em;
 }
 
 .overview-copy p {
-  margin: 10px 0 0;
+  margin: 4px 0 0;
   color: #526173;
-  font-size: 13px;
-  line-height: 1.68;
+  font-size: 11px;
+  line-height: 1.5;
   max-width: 520px;
 }
 
@@ -965,19 +1084,41 @@ const formatTime = (seconds: number) => {
   color: #0f172a;
 }
 
-.overview-actions {
+.overview-rail {
+  border-radius: 18px;
+  border: 1px solid rgba(223, 231, 240, 0.84);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 38px -34px rgba(15, 23, 42, 0.34);
+  backdrop-filter: blur(16px);
+  padding: 12px 14px;
   display: grid;
-  gap: 10px;
+  align-content: center;
+  gap: 4px;
+  min-height: 88px;
+}
+
+.overview-lead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.overview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .overview-btn {
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 12px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 11px;
   border: 1px solid rgba(197, 210, 226, 0.94);
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   color: #0f172a;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -996,73 +1137,69 @@ const formatTime = (seconds: number) => {
   border-color: #0f172a;
 }
 
-.overview-card.metric {
-  display: grid;
-  gap: 10px;
-  align-content: flex-start;
-}
-
-.overview-card.metric strong {
+.overview-rail strong {
   color: #0f172a;
-  font-size: 20px;
-  line-height: 1.08;
+  font-size: 14px;
+  line-height: 1.12;
   letter-spacing: -0.03em;
 }
 
-.overview-card.metric small {
+.overview-rail small {
   color: #64748b;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.overview-card.mission {
-  display: grid;
-  gap: 12px;
-}
-
-.mission-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 12px;
-}
-
-.mission-list li {
-  display: grid;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(226, 232, 240, 0.92);
-  background: rgba(248, 250, 252, 0.92);
-}
-
-.mission-list strong {
-  color: #0f172a;
-  font-size: 13px;
-}
-
-.mission-list span {
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .layout-grid {
   flex: 1;
   width: min(2000px, 100%);
   display: grid;
-  grid-template-columns: 1.1fr 1.35fr 0.95fr;
-  gap: 18px;
+  grid-template-columns: minmax(320px, 1.02fr) minmax(520px, 1.34fr) minmax(340px, 0.92fr);
+  grid-template-areas:
+    'signal core sidebar';
+  gap: 14px;
   min-height: 0;
   height: 0;
   margin: 0 auto;
   align-items: stretch;
 }
 
+.panel-signal {
+  grid-area: signal;
+}
+
+.panel-core {
+  grid-area: core;
+}
+
+.panel-resonance {
+  grid-area: resonance;
+}
+
+.panel-portal {
+  grid-area: portal;
+}
+
+.sidebar-stack {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.panel-portal {
+  flex: 1;
+  min-height: 0;
+}
+
+.panel-resonance {
+  flex: 0 0 auto;
+}
+
 .panel {
   background: rgba(255, 255, 255, 0.82);
-  border-radius: 24px;
+  border-radius: 22px;
   border: 1px solid rgba(223, 231, 240, 0.8);
   box-shadow: 0 18px 36px -30px rgba(15, 23, 42, 0.34);
   display: flex;
@@ -1083,7 +1220,7 @@ const formatTime = (seconds: number) => {
 }
 
 .panel-header {
-  padding: 16px 18px 12px;
+  padding: 14px 16px 10px;
   border-bottom: 1px solid rgba(231, 236, 244, 0.8);
   display: flex;
   align-items: flex-start;
@@ -1102,7 +1239,7 @@ const formatTime = (seconds: number) => {
 
 .panel-header h3 {
   margin: 4px 0 0;
-  font-size: 16px;
+  font-size: 15px;
   color: #0f172a;
   letter-spacing: -0.02em;
 }
@@ -1130,7 +1267,7 @@ const formatTime = (seconds: number) => {
 .panel-body {
   flex: 1;
   min-height: 0;
-  padding: 14px 16px 16px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1139,45 +1276,60 @@ const formatTime = (seconds: number) => {
 .signal-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   min-height: 0;
   overflow: hidden;
 }
 
-.listening-holder {
-  height: 20px;
+.signal-console {
   display: flex;
   align-items: center;
-}
-
-.hint {
-  margin: 0;
-  font-size: 11px;
-  color: #64748b;
-  letter-spacing: 0.14em;
-  font-weight: 800;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.hint.show {
-  opacity: 1;
-}
-
-.quick-row {
-  display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.quick-chip {
+.signal-console-chip {
   min-height: 30px;
   padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  background: rgba(246, 249, 253, 0.94);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.signal-console-chip span {
+  font-size: 10px;
+  color: #64748b;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+}
+
+.signal-console-chip strong {
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.signal-console-chip.ghost {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.quick-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.quick-chip {
+  min-height: 28px;
+  padding: 0 11px;
   border-radius: 999px;
   border: 1px solid rgba(215, 226, 238, 0.92);
   background: rgba(255, 255, 255, 0.92);
   color: #334155;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -1200,9 +1352,11 @@ const formatTime = (seconds: number) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(228, 234, 243, 0.82);
+  border: 1px solid rgba(221, 229, 239, 0.9);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.94);
   overflow: hidden;
 }
 
@@ -1219,11 +1373,40 @@ const formatTime = (seconds: number) => {
   overscroll-behavior: contain;
 }
 
-.chat-empty {
+.chat-empty-panel {
   margin: auto 0;
+  border: 1px dashed rgba(214, 223, 235, 0.92);
+  border-radius: 18px;
+  padding: 18px 16px;
+  background:
+    radial-gradient(260px 140px at 50% 0%, rgba(125, 173, 252, 0.08), transparent 72%),
+    rgba(255, 255, 255, 0.88);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.chat-empty-panel.loading {
+  border-style: solid;
+}
+
+.chat-empty-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #7b8a9b;
+}
+
+.chat-empty-panel strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.chat-empty-panel p {
+  margin: 0;
   color: #64748b;
   font-size: 12px;
-  text-align: center;
   line-height: 1.6;
 }
 
@@ -1239,7 +1422,7 @@ const formatTime = (seconds: number) => {
 .chat-row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  gap: 9px;
 }
 
 .chat-row.user {
@@ -1247,8 +1430,8 @@ const formatTime = (seconds: number) => {
 }
 
 .chat-avatar {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -1265,7 +1448,7 @@ const formatTime = (seconds: number) => {
 }
 
 .chat-bubble {
-  max-width: 80%;
+  max-width: 82%;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1287,13 +1470,14 @@ const formatTime = (seconds: number) => {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.5;
-  font-size: 13px;
+  line-height: 1.58;
+  font-size: 12px;
   padding: 10px 12px;
   border-radius: 16px;
-  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  background: linear-gradient(180deg, #f8fbff, #f1f6fb);
   color: #0f172a;
   border-bottom-left-radius: 6px;
+  border: 1px solid rgba(226, 233, 242, 0.92);
 }
 
 .chat-row.user .chat-text {
@@ -1305,18 +1489,35 @@ const formatTime = (seconds: number) => {
 
 .chat-input {
   flex-shrink: 0;
-  display: flex;
+  display: grid;
   gap: 8px;
   padding: 10px;
   border-top: 1px solid #ecf1f7;
   background: rgba(255, 255, 255, 0.94);
 }
 
+.chat-input-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #7b8a9b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
 .chat-input input {
   flex: 1;
   border: 1px solid #dde5f1;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 13px;
   padding: 10px 12px;
   font-size: 12px;
   outline: none;
@@ -1331,8 +1532,8 @@ const formatTime = (seconds: number) => {
   border: none;
   background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #fff;
-  padding: 0 12px;
-  border-radius: 11px;
+  padding: 0 13px;
+  border-radius: 12px;
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
@@ -1350,80 +1551,169 @@ const formatTime = (seconds: number) => {
 .core-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   min-height: 0;
-  overflow-y: auto;
-}
-
-.core-stage {
-  min-height: 224px;
-  border-radius: 18px;
-  border: 1px solid rgba(221, 230, 240, 0.88);
-  background:
-    radial-gradient(220px 160px at 50% 0%, rgba(110, 231, 183, 0.18), transparent 65%),
-    radial-gradient(240px 180px at 85% 20%, rgba(125, 173, 252, 0.16), transparent 70%),
-    linear-gradient(180deg, #fbfdff, #f3f8ff);
-  display: grid;
-  place-items: center;
   overflow: hidden;
 }
 
-.core-meta {
-  border: 1px solid rgba(221, 230, 240, 0.88);
-  border-radius: 16px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.88);
-  display: grid;
-  gap: 8px;
+.core-stage {
+  flex: 1;
+  min-height: 320px;
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  background:
+    radial-gradient(320px 220px at 50% 40%, rgba(110, 231, 183, 0.18), transparent 64%),
+    radial-gradient(360px 220px at 78% 18%, rgba(125, 173, 252, 0.16), transparent 66%),
+    linear-gradient(180deg, #fbfdff, #f1f6fd);
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 20px 34px -30px rgba(15, 23, 42, 0.28);
 }
 
-.meta-row {
+.stage-aura,
+.stage-center,
+.stage-topline,
+.stage-footer {
+  position: absolute;
+}
+
+.stage-aura {
+  inset: 14% 18% 20%;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.6), transparent 66%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.stage-center {
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-top: 10px;
+}
+
+.stage-topline {
+  left: 16px;
+  right: 16px;
+  top: 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 1;
 }
 
-.meta-row span {
-  color: #64748b;
-}
-
-.meta-row strong {
-  color: #0f172a;
-}
-
-.core-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-}
-
-.btn-wake,
-.btn-echo-core {
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(207, 218, 231, 0.92);
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+.stage-chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  background: rgba(255, 255, 255, 0.84);
+  color: #334155;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  font-size: 12px;
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  letter-spacing: 0.12em;
 }
 
-.btn-wake {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
+.stage-chip.primary {
+  background: rgba(15, 23, 42, 0.92);
   color: #fff;
-  border-color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.92);
 }
 
-.btn-wake:hover,
-.btn-echo-core:hover,
+.stage-footer {
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  z-index: 1;
+  border-radius: 16px;
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stage-footer-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.stage-footer-copy strong {
+  color: #0f172a;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-footer-copy span {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.stage-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-mini-action {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.stage-mini-action.ghost {
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  border-color: rgba(207, 218, 231, 0.96);
+}
+
+.core-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.core-meta-chip {
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.core-meta-chip span {
+  color: #7b8a9b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.core-meta-chip strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.stage-mini-action:hover,
 .dock-jump:hover,
 .dock-btn:hover,
 .btn-close:hover {
@@ -1432,31 +1722,16 @@ const formatTime = (seconds: number) => {
 }
 
 .music-dock {
-  border: 1px solid rgba(221, 230, 240, 0.88);
-  border-radius: 18px;
-  padding: 12px;
+  border: 1px solid rgba(214, 223, 235, 0.94);
+  border-radius: 20px;
+  padding: 12px 14px;
   background:
-    radial-gradient(220px 120px at 0% 0%, rgba(120, 225, 208, 0.12), transparent 70%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 255, 0.94));
+    radial-gradient(240px 120px at 0% 0%, rgba(120, 225, 208, 0.14), transparent 72%),
+    radial-gradient(260px 140px at 100% 0%, rgba(125, 173, 252, 0.16), transparent 74%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(246, 250, 255, 0.95));
   display: grid;
-  gap: 8px;
-}
-
-.dock-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 10px;
-}
-
-.dock-title-row h4 {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #0f172a;
-  max-width: 260px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 .dock-jump {
@@ -1470,15 +1745,49 @@ const formatTime = (seconds: number) => {
   cursor: pointer;
 }
 
-.dock-sub {
+.resonance-body {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.resonance-sub {
   margin: 0;
   font-size: 12px;
   color: #64748b;
+  line-height: 1.6;
 }
 
-.dock-progress-wrap {
-  display: grid;
-  gap: 10px;
+.dock-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dock-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.dock-track {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dock-progress {
@@ -1509,104 +1818,182 @@ const formatTime = (seconds: number) => {
   color: #fff;
 }
 
-.right-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.dock-empty {
   min-height: 0;
-  overflow-y: auto;
-}
-
-.mini-identity {
-  border: 1px solid rgba(221, 230, 240, 0.88);
-  border-radius: 16px;
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background:
-    radial-gradient(200px 120px at 100% 0%, rgba(125, 173, 252, 0.12), transparent 72%),
-    rgba(255, 255, 255, 0.9);
-}
-
-.identity-meta {
-  min-width: 0;
-}
-
-.identity-name {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.identity-detail {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: #64748b;
-  line-height: 1.5;
-  max-height: 38px;
-  overflow: hidden;
-}
-
-.portal-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.portal-item {
+  border: 1px dashed rgba(214, 223, 235, 0.96);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba(221, 230, 240, 0.88);
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 16px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
+  gap: 14px;
 }
 
-.portal-item:hover {
+.dock-empty-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.dock-empty-copy strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.dock-empty-copy span {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.resonance-suggestion {
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.resonance-suggestion strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.resonance-suggestion small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.52;
+}
+
+.right-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: visible;
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.portal-tile,
+.portal-featured {
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+}
+
+.portal-tile {
+  min-height: 58px;
+  border-radius: 16px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.portal-tile:hover,
+.portal-featured:hover {
   background: linear-gradient(180deg, #ffffff, #f8fbff);
   border-color: #d4deeb;
   transform: translateY(-1px);
   box-shadow: 0 14px 26px -22px rgba(15, 23, 42, 0.28);
 }
 
-.portal-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.portal-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #f8fafc, #eef3f8);
-  border: 1px solid rgba(221, 230, 240, 0.92);
+.portal-tile-copy {
+  min-width: 0;
   display: grid;
-  place-items: center;
+  gap: 2px;
 }
 
 .portal-title {
   font-weight: 800;
-  font-size: 13px;
+  font-size: 14px;
   color: #0f172a;
 }
 
 .portal-desc {
   font-size: 11px;
   color: #64748b;
-  margin-top: 2px;
+  line-height: 1.5;
 }
 
-.portal-arrow {
-  font-size: 18px;
-  color: #9aa4b2;
+.portal-link-text {
+  flex-shrink: 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.portal-featured {
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background:
+    radial-gradient(220px 140px at 100% 0%, rgba(125, 173, 252, 0.14), transparent 74%),
+    radial-gradient(180px 120px at 0% 100%, rgba(120, 225, 208, 0.1), transparent 72%),
+    rgba(255, 255, 255, 0.9);
+}
+
+.portal-featured-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.portal-featured-title {
+  display: flex;
+  align-items: center;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.portal-featured-copy span:last-child {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.portal-link-text.featured {
+  color: #0f172a;
+}
+
+.portal-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(246, 249, 253, 0.92);
+  border: 1px solid rgba(223, 231, 240, 0.92);
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.portal-tip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
 }
 
 .modal-backdrop {
@@ -1701,19 +2088,35 @@ const formatTime = (seconds: number) => {
     grid-template-columns: 1fr 1fr;
   }
 
-  .overview-card.hero,
-  .overview-card.mission {
+  .overview-lead {
     grid-column: span 2;
+  }
+
+  .overview-actions {
+    margin-top: 10px;
+  }
+
+  .header-center {
+    min-width: 0;
+  }
+
+  .header-nav {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .layout-grid {
     flex: none;
-    grid-template-columns: 1fr 1.25fr;
+    grid-template-columns: 1fr 1.06fr;
+    grid-template-areas:
+      'core sidebar'
+      'signal sidebar';
     height: auto;
   }
 
-  .panel:last-child {
-    grid-column: span 2;
+  .stage-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
@@ -1728,17 +2131,15 @@ const formatTime = (seconds: number) => {
     margin-bottom: 12px;
   }
 
-  .overview-card.hero,
-  .overview-card.mission {
+  .overview-lead {
     grid-column: auto;
-  }
-
-  .overview-card.hero {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .overview-actions {
     width: 100%;
+    flex-direction: column;
   }
 
   .app-header {
@@ -1746,23 +2147,58 @@ const formatTime = (seconds: number) => {
   }
 
   .header-center {
-    display: none;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .header-nav {
+    gap: 6px;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 2px;
   }
 
   .layout-grid {
     flex: none;
     grid-template-columns: 1fr;
+    grid-template-areas:
+      'core'
+      'signal'
+      'sidebar';
     gap: 12px;
     height: auto;
   }
 
-  .panel:last-child {
-    grid-column: auto;
-  }
-
-  .core-actions,
+  .core-meta-grid,
   .dock-controls {
     grid-template-columns: 1fr;
+  }
+
+  .portal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-input-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stage-footer {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    padding: 10px 12px;
+  }
+
+  .stage-footer-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dock-empty {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .modal-panel {
