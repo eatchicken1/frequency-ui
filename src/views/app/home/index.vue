@@ -13,25 +13,31 @@
           </div>
 
           <div class="overview-actions">
-            <button class="overview-btn primary" @click="openCore">唤醒 Runtime</button>
-            <button class="overview-btn" @click="isEchoCoreActive = true">打开 Workshop</button>
+            <button class="overview-btn primary icon-btn" @click="openCore">
+              <span class="icon-glyph" aria-hidden="true">⚡</span>
+              <span>唤醒 Runtime</span>
+            </button>
+            <button class="overview-btn icon-btn" @click="isEchoCoreActive = true">
+              <span class="icon-glyph" aria-hidden="true">🧠</span>
+              <span>打开 Workshop</span>
+            </button>
           </div>
         </article>
 
         <article class="overview-rail">
-          <span class="overview-label">状态</span>
+          <span class="overview-label icon-label"><span class="label-icon" aria-hidden="true">●</span><span>状态</span></span>
           <strong>{{ isStreaming ? '对话流进行中' : '系统在线待机' }}</strong>
           <small>{{ currentTrack ? '音乐氛围已接入' : '当前无音乐输入' }}</small>
         </article>
 
         <article class="overview-rail">
-          <span class="overview-label">知识库</span>
+          <span class="overview-label icon-label"><span class="label-icon" aria-hidden="true">◈</span><span>知识库</span></span>
           <strong>{{ profile.knowledgeCount || 0 }} 份资料</strong>
           <small>{{ profile.expertise || '等待补充擅长领域' }}</small>
         </article>
 
         <article class="overview-rail">
-          <span class="overview-label">今日提示</span>
+          <span class="overview-label icon-label"><span class="label-icon" aria-hidden="true">✦</span><span>今日提示</span></span>
           <strong>{{ dailyMissions[0]?.title }}</strong>
           <small>{{ dailyMissions[0]?.desc }}</small>
         </article>
@@ -198,9 +204,14 @@
                   @click="handleHotFeatureClick(item)"
                 >
                   <div class="portal-tile-copy">
-                    <span class="portal-title">{{ item.featureName }}</span>
+                    <div class="portal-mainline">
+                      <span class="portal-title">
+                        <span class="title-icon" aria-hidden="true">{{ getFeatureIcon(item) }}</span>
+                        <span class="portal-title-text">{{ item.featureName }}</span>
+                      </span>
+                      <span class="portal-heat">热度 {{ item.heatScore || item.clickCount || 0 }}</span>
+                    </div>
                     <span class="portal-desc">{{ item.featureDesc || '高频访问功能' }}</span>
-                    <span class="portal-heat">热度 {{ item.heatScore || item.clickCount || 0 }}</span>
                   </div>
                   <span class="portal-link-text">{{ item.actionType === 'action' ? '触发' : '进入' }}</span>
                 </button>
@@ -260,7 +271,10 @@
                   <strong>当前没有接入配乐</strong>
                   <span>添加一首歌，让 Echo 的待机区和聊天区都带上节奏感。</span>
                 </div>
-                <button class="dock-btn primary" @click="router.push('/app/music')">去添加歌曲</button>
+                <button class="dock-btn primary icon-btn" @click="router.push('/app/music')">
+                  <span class="icon-glyph" aria-hidden="true">♫</span>
+                  <span>添加配乐</span>
+                </button>
               </div>
 
               <div class="resonance-suggestion">
@@ -629,6 +643,18 @@ const handleHotFeatureClick = async (item: HotFeatureItem) => {
   }
 }
 
+const getFeatureIcon = (item: HotFeatureItem) => {
+  const icon = String(item.icon || '').trim()
+  if (icon) return icon
+  const code = String(item.featureCode || '').toLowerCase()
+  if (code.includes('home')) return '◉'
+  if (code.includes('resonance')) return '✶'
+  if (code.includes('music')) return '♫'
+  if (code.includes('me')) return '◎'
+  if (code.includes('echo')) return '◈'
+  return '◆'
+}
+
 const stopStreaming = () => {
   stopCurrentTyping?.()
   streamController.value?.abort()
@@ -790,9 +816,10 @@ const formatTime = (seconds: number) => {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(1200px 700px at 10% -10%, rgba(120, 225, 208, 0.16), transparent 52%),
-    radial-gradient(1000px 700px at 95% 0%, rgba(125, 173, 252, 0.14), transparent 55%),
-    linear-gradient(180deg, #f5f8fb, #edf2f7);
+    radial-gradient(1100px 680px at 12% -8%, rgba(98, 224, 208, 0.2), transparent 54%),
+    radial-gradient(960px 620px at 96% -4%, rgba(123, 172, 255, 0.18), transparent 56%),
+    radial-gradient(760px 520px at 50% 118%, rgba(147, 197, 253, 0.14), transparent 70%),
+    linear-gradient(180deg, #f7fbff, #edf3f9);
   color: var(--text-primary);
   font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
   overflow: hidden;
@@ -818,6 +845,24 @@ const formatTime = (seconds: number) => {
 
 .overview-copy {
   min-width: 0;
+}
+
+.icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.label-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4f6f95;
+  font-size: 9px;
+  background: rgba(203, 219, 238, 0.36);
 }
 
 .overview-kicker,
@@ -852,9 +897,12 @@ const formatTime = (seconds: number) => {
 
 .overview-rail {
   border-radius: 18px;
-  border: 1px solid rgba(223, 231, 240, 0.84);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 18px 38px -34px rgba(15, 23, 42, 0.34);
+  border: 1px solid rgba(214, 226, 240, 0.9);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 252, 255, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 18px 38px -34px rgba(15, 23, 42, 0.34);
   backdrop-filter: blur(16px);
   padding: 10px 12px;
   display: grid;
@@ -889,6 +937,17 @@ const formatTime = (seconds: number) => {
   letter-spacing: 0.03em;
   cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-glyph {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .overview-btn:hover {
@@ -964,10 +1023,13 @@ const formatTime = (seconds: number) => {
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 250, 255, 0.88));
   border-radius: 22px;
-  border: 1px solid rgba(223, 231, 240, 0.8);
-  box-shadow: 0 18px 36px -30px rgba(15, 23, 42, 0.34);
+  border: 1px solid rgba(216, 227, 241, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 36px -30px rgba(15, 23, 42, 0.34);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -987,7 +1049,7 @@ const formatTime = (seconds: number) => {
 
 .panel-header {
   padding: 14px 16px 10px;
-  border-bottom: 1px solid rgba(231, 236, 244, 0.8);
+  border-bottom: 1px solid rgba(224, 233, 245, 0.86);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -999,7 +1061,7 @@ const formatTime = (seconds: number) => {
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #7b8a9b;
+  color: #6c7f98;
   font-weight: 800;
 }
 
@@ -1058,8 +1120,9 @@ const formatTime = (seconds: number) => {
   min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(214, 223, 235, 0.92);
-  background: rgba(246, 249, 253, 0.94);
+  border: 1px solid rgba(208, 220, 235, 0.94);
+  background:
+    linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(243, 248, 253, 0.92));
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1118,7 +1181,7 @@ const formatTime = (seconds: number) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(221, 229, 239, 0.9);
+  border: 1px solid rgba(214, 226, 240, 0.92);
   border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.92));
@@ -1488,26 +1551,34 @@ const formatTime = (seconds: number) => {
 }
 
 .music-dock {
+  min-width: 0;
   border: 1px solid rgba(214, 223, 235, 0.94);
-  border-radius: 20px;
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 10px 10px;
   background:
     radial-gradient(240px 120px at 0% 0%, rgba(120, 225, 208, 0.14), transparent 72%),
     radial-gradient(260px 140px at 100% 0%, rgba(125, 173, 252, 0.16), transparent 74%),
     linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(246, 250, 255, 0.95));
   display: grid;
-  gap: 10px;
+  gap: 8px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  overflow: hidden;
 }
 
 .dock-jump {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(207, 218, 231, 0.92);
   background: rgba(255, 255, 255, 0.92);
   color: #334155;
   border-radius: 999px;
   height: 28px;
-  padding: 0 10px;
+  min-width: 72px;
+  padding: 0 12px;
   font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -1521,59 +1592,79 @@ const formatTime = (seconds: number) => {
 
 .resonance-sub {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
-  line-height: 1.6;
-}
-
-.dock-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.dock-status {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.92);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.dock-track {
-  min-width: 0;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 700;
+  line-height: 1.45;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.dock-topline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dock-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.dock-track {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .dock-progress {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dock-controls {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+  width: 100%;
 }
 
 .dock-btn {
-  height: 32px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 28px;
   border-radius: 10px;
   border: 1px solid rgba(207, 218, 231, 0.92);
   background: rgba(255, 255, 255, 0.94);
   color: #334155;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
@@ -1612,6 +1703,11 @@ const formatTime = (seconds: number) => {
   line-height: 1.6;
 }
 
+.dock-empty .dock-btn {
+  min-width: 88px;
+  padding: 0 12px;
+}
+
 .resonance-suggestion {
   border: 1px solid rgba(214, 223, 235, 0.92);
   border-radius: 16px;
@@ -1638,7 +1734,17 @@ const formatTime = (seconds: number) => {
   flex-direction: column;
   gap: 10px;
   min-height: 0;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+
+.right-body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .portal-grid {
@@ -1678,25 +1784,77 @@ const formatTime = (seconds: number) => {
 .portal-tile-copy {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 4px;
+}
+
+.portal-mainline {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .portal-title {
+  min-width: 0;
+  flex: 1;
   font-weight: 800;
   font-size: 14px;
   color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.portal-title-text {
+  min-width: 0;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #27486f;
+  background: rgba(206, 220, 239, 0.46);
+  flex-shrink: 0;
+}
+
+.panel-resonance .panel-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-resonance .panel-header h3 {
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .portal-desc {
   font-size: 11px;
   color: #64748b;
   line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .portal-heat {
   display: inline-flex;
+  flex-shrink: 0;
   width: fit-content;
-  margin-top: 3px;
   min-height: 20px;
   padding: 0 8px;
   border-radius: 999px;

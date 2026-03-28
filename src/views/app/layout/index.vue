@@ -1,8 +1,8 @@
 <template>
-  <div class="layout-shell" :class="{ 'home-mode': isHomePage }">
+  <div class="layout-shell">
     <div v-if="showBackButton" class="layout-ambient layout-ambient-a"></div>
     <div v-if="showBackButton" class="layout-ambient layout-ambient-b"></div>
-    <header v-if="showBackButton" class="layout-topbar">
+    <header class="layout-topbar">
       <div class="layout-topbar-inner">
         <button class="brand-anchor" type="button" @click="goBackHome">
           <span class="brand-mark">〰</span>
@@ -13,7 +13,7 @@
         </button>
 
         <div class="topbar-center">
-          <span class="view-kicker">ACTIVE VIEW</span>
+          <span class="view-kicker">当前页面</span>
           <strong>{{ pageTitle }}</strong>
         </div>
 
@@ -31,18 +31,42 @@
             </button>
           </nav>
 
-          <button class="back-btn" type="button" @click="goBackHome">
+          <template v-if="isHomePage">
+            <div class="topbar-status" aria-live="polite">
+              <span class="status-dot" :class="{ playing }"></span>
+              <span class="topbar-status-copy">{{ playing ? '音乐联动中' : '在线待机' }}</span>
+            </div>
+
+            <div class="settings-menu-container">
+              <button
+                class="settings-trigger"
+                :class="{ active: showSettingsMenu }"
+                type="button"
+                aria-label="打开设置菜单"
+                @click="showSettingsMenu = !showSettingsMenu"
+              >
+                ⚙
+              </button>
+              <div v-if="showSettingsMenu" class="settings-menu">
+                <div class="settings-menu-item" @click="handlePersonalInfo">个人信息</div>
+                <div class="settings-menu-item" @click="handleSettings">设置</div>
+                <div class="settings-menu-item danger" @click="handleLogout">退出登录</div>
+              </div>
+            </div>
+          </template>
+
+          <button v-else class="back-btn" type="button" aria-label="返回主页" @click="goBackHome">
             <span class="back-icon">←</span>
-            <span>返回主页</span>
+            <span>主页</span>
           </button>
         </div>
       </div>
     </header>
 
     <main ref="layoutContentRef" class="layout-content" :class="{ 'route-scroll': showBackButton }">
-      <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" />
+      <router-view v-slot="{ Component, route: currentRoute }">
+        <transition :name="pageTransitionName" mode="out-in">
+          <component :is="Component" :key="currentRoute.fullPath" />
         </transition>
       </router-view>
     </main>
@@ -50,12 +74,18 @@
 </template>
 
 <script setup lang="ts" name="layout">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import Cookies from 'js-cookie'
+import { showToast } from 'vant'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
+import { useMusicPlayerStore } from '@/stores/musicPlayer'
+import { Session } from '@/utils/storage'
 
 const route = useRoute()
 const router = useRouter()
 const layoutContentRef = ref<HTMLElement | null>(null)
+const showSettingsMenu = ref(false)
 
 const navItems = [
   { path: '/app/home', label: '当下' },
@@ -63,6 +93,10 @@ const navItems = [
   { path: '/app/music', label: '听歌' },
   { path: '/app/me', label: '本我' }
 ]
+const navOrderMap = new Map(navItems.map((item, index) => [item.path, index]))
+const pageTransitionName = ref('route-slide-forward')
+const musicPlayer = useMusicPlayerStore()
+const { playing } = storeToRefs(musicPlayer)
 
 const isHomePage = computed(() => route.path === '/app/home')
 const showBackButton = computed(() => !isHomePage.value)
@@ -78,13 +112,55 @@ const goToPage = (path: string) => {
   }
 }
 
+const getRouteOrder = (path: string) => navOrderMap.get(path) ?? 0
+
+const getPageTransitionName = (to: string, from?: string) => {
+  if (!from || to === from) return 'route-slide-forward'
+  return getRouteOrder(to) >= getRouteOrder(from) ? 'route-slide-forward' : 'route-slide-back'
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null
+  if (target && !target.closest('.settings-menu-container')) {
+    showSettingsMenu.value = false
+  }
+}
+
+const handlePersonalInfo = () => {
+  showSettingsMenu.value = false
+  router.push('/app/me')
+}
+
+const handleSettings = () => {
+  showSettingsMenu.value = false
+  showToast('设置功能正在完善中，先跳转到个人页')
+  router.push('/app/me')
+}
+
+const handleLogout = () => {
+  showSettingsMenu.value = false
+  Cookies.remove('access_token')
+  Cookies.remove('refresh_token')
+  Cookies.remove('tenant_id')
+  Session.clear()
+  window.location.href = '/'
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
 watch(
   () => route.path,
-  async () => {
+  async (to, from) => {
+    showSettingsMenu.value = false
+    pageTransitionName.value = getPageTransitionName(to, from)
     await nextTick()
-    if (showBackButton.value) {
-      layoutContentRef.value?.scrollTo({ top: 0, behavior: 'auto' })
-    }
+    layoutContentRef.value?.scrollTo({ top: 0, behavior: 'auto' })
   },
   { immediate: true }
 )
@@ -103,10 +179,6 @@ watch(
     radial-gradient(1000px 680px at 100% 0%, rgba(96, 165, 250, 0.1), transparent 58%),
     linear-gradient(180deg, #f6f8fb, #eef3f8);
   overflow: hidden;
-}
-
-.layout-shell.home-mode {
-  --app-nav-height: 0px;
 }
 
 .layout-ambient {
@@ -160,6 +232,10 @@ watch(
   overflow: hidden;
   position: relative;
   z-index: 1;
+}
+
+.layout-content :deep(> *) {
+  min-height: 100%;
 }
 
 .layout-content.route-scroll {
@@ -297,31 +373,125 @@ watch(
   box-shadow: 0 18px 28px -22px rgba(15, 23, 42, 0.64);
 }
 
-.back-btn {
+.topbar-status {
   height: 34px;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(203, 213, 225, 0.92);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.94));
-  color: #0f172a;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  box-shadow: 0 10px 22px -18px rgba(15, 23, 42, 0.42);
+  border: 1px solid rgba(220, 228, 239, 0.92);
+  background: rgba(255, 255, 255, 0.88);
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  color: #0f172a;
+  box-shadow: 0 10px 22px -20px rgba(15, 23, 42, 0.28);
+}
+
+.topbar-status-copy {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+}
+
+.status-dot.playing {
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.settings-menu-container {
+  position: relative;
+}
+
+.settings-trigger {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(220, 228, 239, 0.92);
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f172a;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.settings-trigger:hover,
+.settings-trigger.active {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.92);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.3);
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(220, 228, 239, 0.92);
+  border-radius: 12px;
+  box-shadow: 0 20px 36px -28px rgba(2, 6, 23, 0.26);
+  backdrop-filter: blur(14px);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.settings-menu-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #1f2937;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-menu-item:hover {
+  background: #f8fafc;
+}
+
+.settings-menu-item.danger {
+  border-top: 1px solid #f1f5f9;
+  color: #ef4444;
+}
+
+.settings-menu-item.danger:hover {
+  background: #fef2f2;
+}
+
+.back-btn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 228, 239, 0.92);
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -20px rgba(15, 23, 42, 0.28);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .back-btn:hover {
   background: #ffffff;
-  border-color: rgba(148, 163, 184, 0.96);
+  border-color: rgba(148, 163, 184, 0.92);
   transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.3);
 }
 
 .back-icon {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 @media (max-width: 980px) {
@@ -359,6 +529,11 @@ watch(
     padding: 0 12px;
   }
 
+  .topbar-status,
+  .settings-trigger {
+    height: 32px;
+  }
+
   .brand-mark {
     width: 32px;
     height: 32px;
@@ -387,6 +562,61 @@ watch(
   .back-btn {
     min-width: 36px;
     justify-content: center;
+  }
+
+  .topbar-status {
+    padding: 0 10px;
+  }
+}
+
+:deep(.route-slide-forward-enter-active),
+:deep(.route-slide-forward-leave-active),
+:deep(.route-slide-back-enter-active),
+:deep(.route-slide-back-leave-active) {
+  transition:
+    opacity 260ms ease,
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+:deep(.route-slide-forward-enter-from),
+:deep(.route-slide-back-leave-to) {
+  opacity: 0;
+  transform: translate3d(22px, 0, 0);
+  filter: blur(10px);
+}
+
+:deep(.route-slide-forward-leave-to),
+:deep(.route-slide-back-enter-from) {
+  opacity: 0;
+  transform: translate3d(-18px, 0, 0);
+  filter: blur(8px);
+}
+
+:deep(.route-slide-forward-enter-to),
+:deep(.route-slide-forward-leave-from),
+:deep(.route-slide-back-enter-to),
+:deep(.route-slide-back-leave-from) {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :deep(.route-slide-forward-enter-active),
+  :deep(.route-slide-forward-leave-active),
+  :deep(.route-slide-back-enter-active),
+  :deep(.route-slide-back-leave-active) {
+    transition: opacity 140ms ease;
+  }
+
+  :deep(.route-slide-forward-enter-from),
+  :deep(.route-slide-forward-leave-to),
+  :deep(.route-slide-back-enter-from),
+  :deep(.route-slide-back-leave-to) {
+    transform: none;
+    filter: none;
   }
 }
 </style>
