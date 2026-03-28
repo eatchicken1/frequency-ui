@@ -343,11 +343,13 @@ onMounted(loadAll)
 .hero-card {
   position: relative;
   z-index: 1;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(215, 228, 246, 0.88);
   border-radius: 22px;
   padding: 20px;
   margin-bottom: 14px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(244, 248, 255, 0.78));
+  background:
+    radial-gradient(240px 180px at 0% 0%, rgba(110, 231, 183, 0.1), transparent 72%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(244, 248, 255, 0.78));
   backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-start;
@@ -401,7 +403,7 @@ onMounted(loadAll)
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #d7e4f6;
+  border: 1px solid rgba(215, 228, 246, 0.92);
   background: #ffffff;
   color: #183154;
   font-size: 11px;
@@ -418,8 +420,8 @@ onMounted(loadAll)
   min-height: 36px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid #c7daf5;
-  background: #ffffff;
+  border: 1px solid rgba(199, 218, 245, 0.92);
+  background: linear-gradient(180deg, #ffffff, #f6f9ff);
   color: #204976;
   font-size: 12px;
   font-weight: 800;
@@ -470,11 +472,12 @@ onMounted(loadAll)
 }
 
 .card {
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  border: 1px solid rgba(215, 228, 246, 0.88);
+  border-radius: 20px;
   padding: 14px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(6px);
+  box-shadow: 0 18px 36px -32px rgba(23, 37, 66, 0.24);
 }
 
 .section-head {
@@ -510,14 +513,20 @@ onMounted(loadAll)
 }
 
 .user-card {
-  border: 1px solid #d9e5f7;
-  border-radius: 14px;
+  border: 1px solid rgba(217, 229, 247, 0.92);
+  border-radius: 16px;
   padding: 10px;
   display: grid;
   grid-template-columns: 44px 1fr auto;
   align-items: center;
   gap: 10px;
   background: linear-gradient(135deg, #ffffff, #f5f9ff);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.user-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 24px -22px rgba(37, 99, 235, 0.22);
 }
 
 .user-avatar {
@@ -572,8 +581,8 @@ onMounted(loadAll)
 }
 
 .compose-box {
-  border: 1px solid #d5e4fa;
-  border-radius: 14px;
+  border: 1px solid rgba(213, 228, 250, 0.92);
+  border-radius: 16px;
   padding: 10px;
   background: #fbfdff;
   margin-bottom: 12px;
@@ -607,11 +616,17 @@ onMounted(loadAll)
 }
 
 .moment-card {
-  border: 1px solid #d9e5f7;
-  border-radius: 14px;
+  border: 1px solid rgba(217, 229, 247, 0.92);
+  border-radius: 16px;
   padding: 11px;
   background: linear-gradient(135deg, #ffffff, #f6f9ff);
   animation: rise-in 280ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.moment-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 24px -24px rgba(15, 23, 42, 0.18);
 }
 
 .author {

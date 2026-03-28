@@ -142,9 +142,11 @@ const formatDuration = (seconds: number) => formatTime(seconds)
   align-items: flex-start;
   gap: 16px;
   padding: 18px;
-  border: 1px solid #dbe4f0;
+  border: 1px solid rgba(223, 231, 240, 0.88);
   border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(244, 249, 255, 0.86));
+  background:
+    radial-gradient(240px 180px at 0% 0%, rgba(120, 225, 208, 0.12), transparent 72%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(244, 249, 255, 0.86));
   box-shadow: 0 24px 48px -36px rgba(23, 35, 59, 0.32);
 }
 
@@ -194,7 +196,7 @@ const formatDuration = (seconds: number) => formatTime(seconds)
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #d8e2ef;
+  border: 1px solid rgba(215, 226, 238, 0.92);
   background: #ffffff;
   color: #0f172a;
   font-size: 11px;
@@ -208,12 +210,18 @@ const formatDuration = (seconds: number) => formatTime(seconds)
 }
 
 .import-btn {
-  border: 1px solid #cfd8e8;
-  background: #fff;
+  border: 1px solid rgba(207, 218, 231, 0.92);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 12px;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.import-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.28);
 }
 
 .import-btn input {
@@ -225,10 +233,11 @@ const formatDuration = (seconds: number) => formatTime(seconds)
 .progress-panel,
 .volume-panel,
 .playlist {
-  border: 1px solid #d6e0ef;
-  border-radius: 14px;
-  padding: 12px;
-  background: #fff;
+  border: 1px solid rgba(221, 230, 240, 0.88);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 28px -26px rgba(15, 23, 42, 0.18);
 }
 
 .now-playing {
@@ -245,8 +254,9 @@ const formatDuration = (seconds: number) => formatTime(seconds)
   display: grid;
   place-items: center;
   font-size: 22px;
-  background: linear-gradient(135deg, #2f78ef, #4db7f1);
+  background: linear-gradient(135deg, #2563eb, #4db7f1);
   color: #fff;
+  box-shadow: 0 16px 26px -22px rgba(37, 99, 235, 0.54);
 }
 
 .meta h2 {
@@ -267,18 +277,24 @@ const formatDuration = (seconds: number) => formatTime(seconds)
 }
 
 .ctrl-btn {
-  border: 1px solid #cad7ea;
-  background: #fff;
+  border: 1px solid rgba(207, 218, 231, 0.92);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
   border-radius: 10px;
   padding: 8px;
   font-size: 12px;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .ctrl-btn.primary {
-  background: #2f78ef;
-  border-color: #2f78ef;
+  background: linear-gradient(135deg, #2563eb, #4db7f1);
+  border-color: #2563eb;
   color: #fff;
+}
+
+.ctrl-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.28);
 }
 
 .ctrl-btn:disabled {
@@ -313,9 +329,9 @@ const formatDuration = (seconds: number) => formatTime(seconds)
 
 .track-row {
   width: 100%;
-  border: 1px solid #d5dff0;
-  background: #f9fbff;
-  border-radius: 10px;
+  border: 1px solid rgba(213, 223, 240, 0.92);
+  background: linear-gradient(180deg, #fbfdff, #f5f9ff);
+  border-radius: 12px;
   padding: 8px 10px;
   margin-bottom: 7px;
   display: flex;
@@ -323,11 +339,17 @@ const formatDuration = (seconds: number) => formatTime(seconds)
   justify-content: space-between;
   text-align: left;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .track-row.active {
-  border-color: #2f78ef;
+  border-color: #2563eb;
   background: #ecf3ff;
+  box-shadow: 0 16px 24px -24px rgba(37, 99, 235, 0.42);
+}
+
+.track-row:hover {
+  transform: translateY(-1px);
 }
 
 .track-row span {

@@ -147,7 +147,7 @@ onMounted(loadOverview)
 .profile-hero {
   position: relative;
   z-index: 1;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(241, 220, 198, 0.88);
   border-radius: 22px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 248, 236, 0.82));
   backdrop-filter: blur(8px);
@@ -234,7 +234,7 @@ onMounted(loadOverview)
   align-items: center;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #efcfac;
+  border: 1px solid rgba(239, 207, 172, 0.94);
   background: rgba(255, 255, 255, 0.88);
   color: #8b4e1d;
   font-size: 11px;
@@ -248,8 +248,8 @@ onMounted(loadOverview)
 }
 
 .refresh-btn {
-  border: 1px solid #edcca9;
-  background: #fff;
+  border: 1px solid rgba(237, 204, 169, 0.94);
+  background: linear-gradient(180deg, #ffffff, #fff8ef);
   color: #9f5e2b;
   border-radius: 10px;
   padding: 8px 12px;
@@ -300,10 +300,11 @@ onMounted(loadOverview)
 }
 
 .metric-card {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px;
+  border: 1px solid rgba(241, 220, 198, 0.88);
+  border-radius: 16px;
+  padding: 14px;
   background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 30px -28px rgba(106, 53, 16, 0.18);
 }
 
 .metric-card h3 {
@@ -324,10 +325,11 @@ onMounted(loadOverview)
   position: relative;
   z-index: 1;
   margin-top: 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 1px solid rgba(241, 220, 198, 0.88);
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.92);
-  padding: 14px;
+  padding: 16px;
+  box-shadow: 0 16px 30px -28px rgba(106, 53, 16, 0.18);
 }
 
 .policy-card h2 {

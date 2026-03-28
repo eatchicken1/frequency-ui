@@ -31,6 +31,45 @@
     </header>
 
     <main class="app-main">
+      <section class="overview-strip">
+        <article class="overview-card hero">
+          <div class="overview-copy">
+            <p class="overview-kicker">CURRENT FREQUENCY</p>
+            <h2>{{ profile.name }} 正在待机</h2>
+            <p>
+              让聊天、分身和音乐保持一条连续的情绪曲线。当前人格为
+              <strong>{{ profile.speechStyle }}</strong>，{{ statusText }}。
+            </p>
+          </div>
+          <div class="overview-actions">
+            <button class="overview-btn primary" @click="openCore">唤醒 Runtime</button>
+            <button class="overview-btn" @click="isEchoCoreActive = true">打开 Workshop</button>
+          </div>
+        </article>
+
+        <article class="overview-card metric">
+          <span class="overview-label">状态</span>
+          <strong>{{ isStreaming ? '对话流进行中' : '系统在线待机' }}</strong>
+          <small>{{ currentTrack ? '音乐氛围已接入' : '当前无音乐输入' }}</small>
+        </article>
+
+        <article class="overview-card metric">
+          <span class="overview-label">知识库</span>
+          <strong>{{ profile.knowledgeCount || 0 }} 份资料</strong>
+          <small>{{ profile.expertise || '等待补充擅长领域' }}</small>
+        </article>
+
+        <article class="overview-card mission">
+          <span class="overview-label">今天可以做什么</span>
+          <ul class="mission-list">
+            <li v-for="item in dailyMissions" :key="item.title">
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.desc }}</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
       <div class="layout-grid">
         <section class="panel">
           <div class="panel-header">
@@ -276,6 +315,21 @@ const quickInteractions = computed(() => [
   { label: '打个招呼', text: `${profile.value.name}，先和我打个招呼吧。` },
   { label: '今日建议', text: `以${profile.value.speechStyle}风格，给我一个今天可执行的提升建议。` },
   { label: '节奏聊天', text: '结合当前音乐氛围，陪我聊 1 分钟，语气轻松一点。' }
+])
+
+const dailyMissions = computed(() => [
+  {
+    title: '校准分身',
+    desc: profile.value.personaPrompt ? '把人格设定收成更稳定的说话习惯。' : '补上分身人格 Prompt，让回答更像你的 Echo。'
+  },
+  {
+    title: '做一次共鸣测试',
+    desc: '到共鸣页刷新推荐，看看今天谁和你的频率最接近。'
+  },
+  {
+    title: '接入情绪配乐',
+    desc: currentTrack.value ? `继续播放 ${currentTrack.value.name}，让对话氛围更完整。` : '导入一首歌，让待机区和聊天区联动起来。'
+  }
 ])
 
 type ChatMessage = { role: 'user' | 'ai'; content: string; createTime?: string; timestamp?: number }
@@ -692,10 +746,10 @@ const formatTime = (seconds: number) => {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(1200px 700px at 10% -10%, rgba(120, 225, 208, 0.18), transparent 50%),
+    radial-gradient(1200px 700px at 10% -10%, rgba(120, 225, 208, 0.16), transparent 52%),
     radial-gradient(1000px 700px at 95% 0%, rgba(125, 173, 252, 0.14), transparent 55%),
-    #eef2f7;
-  color: #1f2937;
+    linear-gradient(180deg, #f5f8fb, #edf2f7);
+  color: var(--text-primary);
   font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
   overflow: hidden;
 }
@@ -704,9 +758,9 @@ const formatTime = (seconds: number) => {
   height: 64px;
   flex-shrink: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px) saturate(130%);
+  border-bottom: 1px solid rgba(221, 230, 240, 0.88);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -724,10 +778,11 @@ const formatTime = (seconds: number) => {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #fff;
   display: grid;
   place-items: center;
+  box-shadow: 0 16px 28px -22px rgba(15, 23, 42, 0.82);
 }
 
 .logo-text {
@@ -772,10 +827,10 @@ const formatTime = (seconds: number) => {
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid #e4eaf3;
-  background: #fff;
+  border: 1px solid rgba(220, 228, 239, 0.92);
+  background: rgba(255, 255, 255, 0.88);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
 }
 
@@ -791,14 +846,15 @@ const formatTime = (seconds: number) => {
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  border: 1px solid #dfe7f2;
-  background: #fff;
+  border: 1px solid rgba(220, 228, 239, 0.92);
+  background: rgba(255, 255, 255, 0.88);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .header-btn:hover {
-  background: #f8fafc;
+  background: #fff;
+  transform: translateY(-1px);
 }
 
 .settings-menu-container {
@@ -811,10 +867,11 @@ const formatTime = (seconds: number) => {
   right: 0;
   margin-top: 8px;
   width: 180px;
-  background: #fff;
-  border: 1px solid #e4eaf3;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(220, 228, 239, 0.92);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
+  box-shadow: 0 20px 36px -28px rgba(2, 6, 23, 0.26);
+  backdrop-filter: blur(14px);
   z-index: 1000;
   overflow: hidden;
 }
@@ -843,28 +900,177 @@ const formatTime = (seconds: number) => {
 .app-main {
   flex: 1;
   min-height: 0;
-  padding: 22px 30px;
+  padding: 18px 30px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.overview-strip {
+  width: min(2000px, 100%);
+  flex-shrink: 0;
+  margin: 0 auto 18px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.72fr 0.72fr 1fr;
+  gap: 14px;
+}
+
+.overview-card {
+  border-radius: 22px;
+  border: 1px solid rgba(223, 231, 240, 0.8);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 38px -34px rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(16px);
+  padding: 16px;
+}
+
+.overview-card.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.overview-copy {
+  min-width: 0;
+}
+
+.overview-kicker,
+.overview-label {
+  margin: 0;
+  color: #7b8a9b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.overview-copy h2 {
+  margin: 6px 0 0;
+  color: #0f172a;
+  font-size: 28px;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.overview-copy p {
+  margin: 10px 0 0;
+  color: #526173;
+  font-size: 13px;
+  line-height: 1.68;
+  max-width: 520px;
+}
+
+.overview-copy strong {
+  color: #0f172a;
+}
+
+.overview-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.overview-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(197, 210, 226, 0.94);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.overview-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.84);
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.34);
+}
+
+.overview-btn.primary {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  border-color: #0f172a;
+}
+
+.overview-card.metric {
+  display: grid;
+  gap: 10px;
+  align-content: flex-start;
+}
+
+.overview-card.metric strong {
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.overview-card.metric small {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.overview-card.mission {
+  display: grid;
+  gap: 12px;
+}
+
+.mission-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.mission-list li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.mission-list strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.mission-list span {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .layout-grid {
+  flex: 1;
+  width: min(2000px, 100%);
   display: grid;
   grid-template-columns: 1.1fr 1.35fr 0.95fr;
   gap: 18px;
-  height: 100%;
-  max-width: 2000px;
+  min-height: 0;
+  height: 0;
   margin: 0 auto;
+  align-items: stretch;
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.82);
   border-radius: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.75);
-  box-shadow: 0 10px 35px -30px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(223, 231, 240, 0.8);
+  box-shadow: 0 18px 36px -30px rgba(15, 23, 42, 0.34);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
   backdrop-filter: blur(10px);
+  min-height: 0;
 }
 
 .panel {
@@ -873,7 +1079,7 @@ const formatTime = (seconds: number) => {
 
 .panel:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.45);
+  box-shadow: 0 26px 42px -30px rgba(15, 23, 42, 0.42);
 }
 
 .panel-header {
@@ -890,18 +1096,19 @@ const formatTime = (seconds: number) => {
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #64748b;
-  font-weight: 700;
+  color: #7b8a9b;
+  font-weight: 800;
 }
 
 .panel-header h3 {
   margin: 4px 0 0;
-  font-size: 15px;
+  font-size: 16px;
   color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .tag {
-  height: 24px;
+  min-height: 26px;
   border-radius: 999px;
   padding: 0 10px;
   display: inline-flex;
@@ -909,8 +1116,8 @@ const formatTime = (seconds: number) => {
   font-size: 10px;
   letter-spacing: 0.08em;
   color: #334155;
-  border: 1px solid #dce4ef;
-  background: #f8fbff;
+  border: 1px solid rgba(215, 226, 238, 0.92);
+  background: rgba(248, 251, 255, 0.92);
   font-weight: 800;
 }
 
@@ -924,12 +1131,17 @@ const formatTime = (seconds: number) => {
   flex: 1;
   min-height: 0;
   padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .signal-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .listening-holder {
@@ -959,15 +1171,22 @@ const formatTime = (seconds: number) => {
 }
 
 .quick-chip {
-  height: 28px;
-  padding: 0 10px;
+  min-height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid #dce4ee;
-  background: #fff;
+  border: 1px solid rgba(215, 226, 238, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   color: #334155;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.quick-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.78);
+  box-shadow: 0 10px 20px -18px rgba(15, 23, 42, 0.28);
 }
 
 .quick-chip:disabled {
@@ -981,9 +1200,9 @@ const formatTime = (seconds: number) => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(228, 234, 243, 0.9);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(228, 234, 243, 0.82);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
   overflow: hidden;
 }
 
@@ -991,12 +1210,13 @@ const formatTime = (seconds: number) => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 23, 42, 0.22) transparent;
+  overscroll-behavior: contain;
 }
 
 .chat-empty {
@@ -1027,20 +1247,20 @@ const formatTime = (seconds: number) => {
 }
 
 .chat-avatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
   display: grid;
   place-items: center;
   font-size: 11px;
   font-weight: 800;
   flex-shrink: 0;
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #fff;
 }
 
 .chat-row.ai .chat-avatar {
-  background: #dbeafe;
+  background: linear-gradient(135deg, #dbeafe, #e0f2fe);
   color: #1e3a8a;
 }
 
@@ -1067,17 +1287,17 @@ const formatTime = (seconds: number) => {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.45;
+  line-height: 1.5;
   font-size: 13px;
-  padding: 9px 11px;
-  border-radius: 14px;
-  background: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
   color: #0f172a;
   border-bottom-left-radius: 6px;
 }
 
 .chat-row.user .chat-text {
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #fff;
   border-bottom-right-radius: 6px;
   border-bottom-left-radius: 14px;
@@ -1089,15 +1309,15 @@ const formatTime = (seconds: number) => {
   gap: 8px;
   padding: 10px;
   border-top: 1px solid #ecf1f7;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .chat-input input {
   flex: 1;
   border: 1px solid #dde5f1;
   background: #fff;
-  border-radius: 11px;
-  padding: 9px 11px;
+  border-radius: 12px;
+  padding: 10px 12px;
   font-size: 12px;
   outline: none;
 }
@@ -1109,17 +1329,18 @@ const formatTime = (seconds: number) => {
 .chat-send,
 .chat-stop {
   border: none;
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #fff;
   padding: 0 12px;
   border-radius: 11px;
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .chat-stop {
-  background: #475569;
+  background: linear-gradient(135deg, #475569, #64748b);
 }
 
 .chat-send:disabled {
@@ -1130,26 +1351,28 @@ const formatTime = (seconds: number) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .core-stage {
-  min-height: 208px;
+  min-height: 224px;
   border-radius: 18px;
-  border: 1px solid #e5ecf4;
+  border: 1px solid rgba(221, 230, 240, 0.88);
   background:
     radial-gradient(220px 160px at 50% 0%, rgba(110, 231, 183, 0.18), transparent 65%),
-    linear-gradient(180deg, #f8fcff, #f2f8ff);
+    radial-gradient(240px 180px at 85% 20%, rgba(125, 173, 252, 0.16), transparent 70%),
+    linear-gradient(180deg, #fbfdff, #f3f8ff);
   display: grid;
   place-items: center;
   overflow: hidden;
 }
 
 .core-meta {
-  border: 1px solid #e5edf6;
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(221, 230, 240, 0.88);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.88);
   display: grid;
   gap: 8px;
 }
@@ -1180,8 +1403,8 @@ const formatTime = (seconds: number) => {
 .btn-echo-core {
   height: 42px;
   border-radius: 12px;
-  border: 1px solid #d9e2ee;
-  background: #fff;
+  border: 1px solid rgba(207, 218, 231, 0.92);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1190,19 +1413,31 @@ const formatTime = (seconds: number) => {
   letter-spacing: 0.04em;
   cursor: pointer;
   font-size: 12px;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .btn-wake {
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #fff;
   border-color: #0f172a;
 }
 
+.btn-wake:hover,
+.btn-echo-core:hover,
+.dock-jump:hover,
+.dock-btn:hover,
+.btn-close:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.3);
+}
+
 .music-dock {
-  border: 1px solid #e3ebf4;
-  border-radius: 16px;
+  border: 1px solid rgba(221, 230, 240, 0.88);
+  border-radius: 18px;
   padding: 12px;
-  background: linear-gradient(160deg, #fff, #f8fbff);
+  background:
+    radial-gradient(220px 120px at 0% 0%, rgba(120, 225, 208, 0.12), transparent 70%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 255, 0.94));
   display: grid;
   gap: 8px;
 }
@@ -1225,8 +1460,8 @@ const formatTime = (seconds: number) => {
 }
 
 .dock-jump {
-  border: 1px solid #d7e1ec;
-  background: #fff;
+  border: 1px solid rgba(207, 218, 231, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   color: #334155;
   border-radius: 999px;
   height: 28px;
@@ -1259,16 +1494,17 @@ const formatTime = (seconds: number) => {
 .dock-btn {
   height: 32px;
   border-radius: 10px;
-  border: 1px solid #d7e1ec;
-  background: #fff;
+  border: 1px solid rgba(207, 218, 231, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   color: #334155;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .dock-btn.primary {
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   border-color: #0f172a;
   color: #fff;
 }
@@ -1277,17 +1513,20 @@ const formatTime = (seconds: number) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .mini-identity {
-  border: 1px solid #e4ebf4;
-  border-radius: 14px;
-  padding: 10px;
+  border: 1px solid rgba(221, 230, 240, 0.88);
+  border-radius: 16px;
+  padding: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #fff;
+  background:
+    radial-gradient(200px 120px at 100% 0%, rgba(125, 173, 252, 0.12), transparent 72%),
+    rgba(255, 255, 255, 0.9);
 }
 
 .identity-meta {
@@ -1305,8 +1544,8 @@ const formatTime = (seconds: number) => {
   margin: 4px 0 0;
   font-size: 12px;
   color: #64748b;
-  line-height: 1.4;
-  max-height: 34px;
+  line-height: 1.5;
+  max-height: 38px;
   overflow: hidden;
 }
 
@@ -1322,18 +1561,19 @@ const formatTime = (seconds: number) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #e8edf5;
-  background: #fff;
-  border-radius: 14px;
-  padding: 10px 12px;
+  border: 1px solid rgba(221, 230, 240, 0.88);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  padding: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .portal-item:hover {
-  background: #f8fbff;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
   border-color: #d4deeb;
   transform: translateY(-1px);
+  box-shadow: 0 14px 26px -22px rgba(15, 23, 42, 0.28);
 }
 
 .portal-left {
@@ -1343,11 +1583,11 @@ const formatTime = (seconds: number) => {
 }
 
 .portal-icon {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e4eaf2;
+  background: linear-gradient(180deg, #f8fafc, #eef3f8);
+  border: 1px solid rgba(221, 230, 240, 0.92);
   display: grid;
   place-items: center;
 }
@@ -1386,8 +1626,8 @@ const formatTime = (seconds: number) => {
 .modal-panel {
   width: min(1080px, calc(100vw - 48px));
   height: min(720px, calc(100vh - 120px));
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 28px;
   overflow: hidden;
   box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.55);
@@ -1403,6 +1643,8 @@ const formatTime = (seconds: number) => {
   justify-content: space-between;
   padding: 0 18px 0 20px;
   border-bottom: 1px solid rgba(228, 228, 231, 0.7);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
 }
 
 .modal-title {
@@ -1429,7 +1671,7 @@ const formatTime = (seconds: number) => {
   height: 36px;
   border-radius: 14px;
   border: 1px solid #e4e4e7;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   cursor: pointer;
 }
 
@@ -1451,8 +1693,23 @@ const formatTime = (seconds: number) => {
 }
 
 @media (max-width: 1360px) {
+  .app-main {
+    overflow-y: auto;
+  }
+
+  .overview-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .overview-card.hero,
+  .overview-card.mission {
+    grid-column: span 2;
+  }
+
   .layout-grid {
+    flex: none;
     grid-template-columns: 1fr 1.25fr;
+    height: auto;
   }
 
   .panel:last-child {
@@ -1463,6 +1720,25 @@ const formatTime = (seconds: number) => {
 @media (max-width: 980px) {
   .app-main {
     padding: 12px;
+    overflow-y: auto;
+  }
+
+  .overview-strip {
+    grid-template-columns: 1fr;
+    margin-bottom: 12px;
+  }
+
+  .overview-card.hero,
+  .overview-card.mission {
+    grid-column: auto;
+  }
+
+  .overview-card.hero {
+    flex-direction: column;
+  }
+
+  .overview-actions {
+    width: 100%;
   }
 
   .app-header {
@@ -1474,8 +1750,10 @@ const formatTime = (seconds: number) => {
   }
 
   .layout-grid {
+    flex: none;
     grid-template-columns: 1fr;
     gap: 12px;
+    height: auto;
   }
 
   .panel:last-child {

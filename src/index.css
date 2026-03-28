@@ -2,15 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 强制覆盖 Pig 的默认背景色 */
-body, #app {
-  background-color: #F7F4ED !important; /* 强制使用我们的鱼肚白 */
+html,
+body,
+#app {
+  background: transparent !important;
   margin: 0;
   padding: 0;
-  color: #333333; /* 强制文字颜色为徽墨 */
+  color: var(--text-primary, #1e293b) !important;
 }
 
-/* 修复 Element Plus 可能带来的深色背景 */
-.el-container, .el-main {
-    background-color: transparent !important;
+.el-container,
+.el-main {
+  background-color: transparent !important;
 }

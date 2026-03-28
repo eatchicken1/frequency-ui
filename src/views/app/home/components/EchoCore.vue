@@ -286,20 +286,19 @@
               <p class="ec-summary-prompt">
                 {{ form.personaPrompt || '还没有填写人格 Prompt，当前会沿用默认分身语气。' }}
               </p>
-            </div>
-
-            <div class="ec-stat-grid">
-              <div class="ec-stat">
-                <span>语气</span>
-                <strong>{{ form.speechStyle }}</strong>
-              </div>
-              <div class="ec-stat">
-                <span>资料</span>
-                <strong>{{ mergedKnowledgeCount }}</strong>
-              </div>
-              <div class="ec-stat">
-                <span>可见性</span>
-                <strong>{{ form.visibility }}</strong>
+              <div class="ec-stat-grid">
+                <div class="ec-stat">
+                  <span>语气</span>
+                  <strong>{{ form.speechStyle }}</strong>
+                </div>
+                <div class="ec-stat">
+                  <span>资料</span>
+                  <strong>{{ mergedKnowledgeCount }}</strong>
+                </div>
+                <div class="ec-stat">
+                  <span>可见性</span>
+                  <strong>{{ form.visibility }}</strong>
+                </div>
               </div>
             </div>
 
@@ -637,21 +636,19 @@ const onApply = async () => {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(247, 249, 252, 0.96), rgba(242, 245, 249, 0.96));
-  border: 1px solid rgba(198, 208, 222, 0.8);
-  box-shadow: 0 36px 72px -34px rgba(15, 23, 42, 0.46);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(250, 252, 255, 0.98), rgba(246, 249, 252, 0.96));
+  border: 1px solid rgba(209, 218, 230, 0.84);
+  box-shadow: 0 28px 58px -36px rgba(15, 23, 42, 0.38);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .ec-card-top {
-  padding: 18px 24px 10px;
-  border-bottom: 1px solid rgba(222, 229, 237, 0.88);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.42));
+  padding: 16px 22px 10px;
+  border-bottom: 1px solid rgba(228, 233, 240, 0.94);
+  background: rgba(255, 255, 255, 0.76);
 }
 
 .ec-status-strip {
@@ -672,20 +669,20 @@ const onApply = async () => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 32px;
+  padding: 0 11px;
   border-radius: 999px;
-  border: 1px solid #cdd6e1;
-  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  background: rgba(255, 255, 255, 0.92);
   color: #0f172a;
   font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.14em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
 }
 
 .ec-status-pill.dirty {
-  border-color: #d5c5a2;
-  background: #fff8ec;
+  border-color: #e5d5b3;
+  background: #fff8ed;
 }
 
 .ec-dot {
@@ -704,20 +701,20 @@ const onApply = async () => {
 .ec-mini-state {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #dbe3ec;
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #e1e7ef;
+  background: rgba(248, 250, 252, 0.92);
   color: #475569;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .ec-status-copy {
   color: #526173;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
   text-align: right;
 }
@@ -725,7 +722,7 @@ const onApply = async () => {
 .ec-card-body {
   flex: 1;
   min-height: 0;
-  padding: 10px 24px 0;
+  padding: 10px 22px 0;
   overflow: hidden;
 }
 
@@ -733,11 +730,11 @@ const onApply = async () => {
   height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.88fr);
-  gap: 20px;
+  gap: 16px;
   min-width: 0;
   min-height: 0;
   align-items: stretch;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
 }
 
 .ec-left,
@@ -747,9 +744,8 @@ const onApply = async () => {
 
 .ec-left {
   border-radius: 16px;
-  border: 1px solid #d7dee8;
-  background: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  border: 1px solid #dde4ee;
+  background: rgba(255, 255, 255, 0.86);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -763,17 +759,17 @@ const onApply = async () => {
 }
 
 .ec-tabs {
-  padding: 14px 14px 10px;
+  padding: 12px 12px 10px;
   display: flex;
   gap: 10px;
   border-bottom: 1px solid #edf2f7;
-  background: #f3f6fa;
+  background: rgba(247, 249, 252, 0.9);
 }
 
 .ec-left-content {
   flex: 1;
   min-height: 0;
-  padding: 8px 14px 14px;
+  padding: 6px 12px 12px;
 }
 
 .ec-toggle-row {
@@ -788,7 +784,7 @@ const onApply = async () => {
 .ec-toggle-label {
   color: #64748b;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ec-toggle-actions {
@@ -799,20 +795,20 @@ const onApply = async () => {
 
 .ec-mini-toggle {
   height: 26px;
-  border-radius: 9px;
-  border: 1px solid #d1d9e4;
-  background: #f7f9fc;
+  border-radius: 999px;
+  border: 1px solid #dbe3ec;
+  background: #fff;
   color: #334155;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0 10px;
   cursor: pointer;
 }
 
 .ec-section {
-  border: 1px solid #d9e1eb;
-  border-radius: 10px;
-  background: #fff;
+  border: 1px solid #e1e7ef;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
   overflow: hidden;
 }
 
@@ -820,9 +816,9 @@ const onApply = async () => {
   width: 100%;
   border: 0;
   border-bottom: 1px solid #e7edf4;
-  background: linear-gradient(180deg, #f6f8fb, #eef3f8);
+  background: rgba(248, 250, 252, 0.92);
   color: #0f172a;
-  padding: 11px 12px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -839,19 +835,19 @@ const onApply = async () => {
 }
 
 .ec-section-head.open {
-  background: linear-gradient(180deg, #eef3f8, #e8eef6);
+  background: rgba(243, 247, 251, 0.96);
 }
 
 .ec-section-title {
   font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .ec-section-meta {
   color: #64748b;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
@@ -867,21 +863,21 @@ const onApply = async () => {
 }
 
 .ec-section-body {
-  padding: 12px;
+  padding: 12px 14px 14px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .ec-tab {
   height: 34px;
   padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid #d6dee8;
-  background: #fff;
+  border-radius: 999px;
+  border: 1px solid #dde5ee;
+  background: rgba(255, 255, 255, 0.92);
   color: #475569;
   cursor: pointer;
-  font-weight: 800;
-  letter-spacing: 0.03em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .ec-tab.active {
@@ -892,7 +888,7 @@ const onApply = async () => {
 
 .ec-pane {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .ec-row-2 {
@@ -902,14 +898,14 @@ const onApply = async () => {
 }
 
 .ec-block {
-  border: 1px solid #dfe6ef;
-  border-radius: 10px;
+  border: 1px solid #e5ebf2;
+  border-radius: 12px;
   padding: 12px;
-  background: linear-gradient(180deg, #ffffff, #fbfcfe);
+  background: rgba(250, 252, 255, 0.9);
 }
 
 .ec-label {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 13px;
   color: #0f172a;
 }
@@ -924,9 +920,9 @@ const onApply = async () => {
 .ec-textarea {
   margin-top: 10px;
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid #d7dfeb;
-  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #dde5ef;
+  background: rgba(255, 255, 255, 0.94);
   color: #0f172a;
   padding: 10px 12px;
   outline: none;
@@ -953,11 +949,11 @@ const onApply = async () => {
 
 .ec-chip {
   height: 30px;
-  border-radius: 8px;
-  border: 1px solid #d5dde8;
-  background: #f8fafc;
+  border-radius: 999px;
+  border: 1px solid #d9e1eb;
+  background: #fff;
   padding: 0 12px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 12px;
   color: #334155;
   cursor: pointer;
@@ -1002,9 +998,9 @@ const onApply = async () => {
 }
 
 .ec-file-item {
-  border: 1px solid #dbe3ed;
-  border-radius: 10px;
-  background: #f9fbfd;
+  border: 1px solid #e5ebf2;
+  border-radius: 12px;
+  background: rgba(249, 251, 253, 0.88);
   padding: 10px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1031,21 +1027,21 @@ const onApply = async () => {
 
 .ec-empty-files {
   margin-top: 12px;
-  border: 1px dashed #d7e0ea;
-  border-radius: 10px;
+  border: 1px dashed #dce4ee;
+  border-radius: 12px;
   padding: 12px;
-  background: #fbfcfe;
+  background: rgba(249, 251, 253, 0.76);
   color: #64748b;
   font-size: 12px;
   line-height: 1.5;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ec-mini-btn {
   border: 1px solid #d5dde8;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.94);
   color: #334155;
-  border-radius: 8px;
+  border-radius: 999px;
   height: 30px;
   padding: 0 10px;
   font-size: 12px;
@@ -1053,14 +1049,14 @@ const onApply = async () => {
 }
 
 .ec-tip {
-  border: 1px solid #d8e3ef;
-  background: linear-gradient(180deg, #f5f8fc, #edf3f9);
-  border-radius: 10px;
+  border: 1px solid #e1e7ef;
+  background: rgba(246, 249, 252, 0.88);
+  border-radius: 12px;
   padding: 10px 12px;
   font-size: 12px;
   color: #405264;
   line-height: 1.5;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ec-tip.compact {
@@ -1069,11 +1065,9 @@ const onApply = async () => {
 
 .ec-right {
   border-radius: 16px;
-  border: 1px solid #cfd8e3;
-  background:
-    linear-gradient(180deg, #f2f5f9, #e9eef5);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-  padding: 16px;
+  border: 1px solid #dde4ee;
+  background: rgba(248, 250, 252, 0.9);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1109,9 +1103,9 @@ const onApply = async () => {
 }
 
 .ec-right-title {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
-  font-weight: 900;
+  font-weight: 800;
   color: #0f172a;
 }
 
@@ -1126,8 +1120,8 @@ const onApply = async () => {
   margin: 0 0 6px;
   color: #64748b;
   font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.16em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -1137,11 +1131,11 @@ const onApply = async () => {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid #d4dde8;
-  background: #ffffff;
+  border: 1px solid #dce4ed;
+  background: rgba(255, 255, 255, 0.92);
   color: #475569;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -1153,17 +1147,17 @@ const onApply = async () => {
 
 .ec-preview-stage {
   margin-top: 14px;
-  border: 1px solid #d7dfe9;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 252, 0.96));
-  padding: 14px;
+  border: 1px solid #e1e7ef;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 12px;
 }
 
 .ec-preview-summary {
   margin-top: 12px;
-  border: 1px solid #d7dee8;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
   padding: 12px;
   display: grid;
   gap: 10px;
@@ -1179,13 +1173,13 @@ const onApply = async () => {
 .ec-summary-line span {
   color: #64748b;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ec-summary-line strong {
   color: #0f172a;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: right;
 }
 
@@ -1213,37 +1207,38 @@ const onApply = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 10px 11px;
-  border-radius: 9px;
-  border: 1px solid #d5dde8;
-  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e1e7ef;
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .ec-stat span {
   color: #64748b;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ec-stat strong {
   color: #0f172a;
   font-size: 13px;
+  font-weight: 700;
 }
 
 .ec-footer {
-  border-top: 1px solid #e7ebf1;
+  border-top: 1px solid #e8edf3;
   padding: 14px 22px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: linear-gradient(180deg, #f8fafc, #eef2f7);
+  background: rgba(250, 252, 255, 0.92);
 }
 
 .ec-footer-note {
   margin: 0;
   color: #526173;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ec-footer-actions {
@@ -1254,9 +1249,9 @@ const onApply = async () => {
 
 .ec-btn {
   height: 38px;
-  border-radius: 10px;
+  border-radius: 999px;
   padding: 0 16px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 13px;
   border: 1px solid transparent;
   cursor: pointer;

@@ -169,15 +169,16 @@ const handleLogin = async () => {
   width: 100%;
   min-height: 100vh;
   position: relative;
-  /* 背景色：云峰白/淡灰 (#F2F4F6) - 护眼且高级 */
-  background-color: #F2F4F6; 
+  background:
+    radial-gradient(1100px 720px at 0% 0%, rgba(120, 225, 208, 0.14), transparent 58%),
+    radial-gradient(980px 720px at 100% 0%, rgba(125, 173, 252, 0.12), transparent 60%),
+    linear-gradient(180deg, #f6f8fb, #eef3f8);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* 文本色：墨色 (#27272a) - 深灰接近黑 */
   color: #27272a;
-  font-family: sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
 }
 
 /* 背景光效：改为淡雅的水墨色 */
@@ -196,28 +197,50 @@ const handleLogin = async () => {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
   padding: 0 32px;
 }
 
 /* Splash */
-.splash-screen { display: flex; flex-direction: column; align-items: center; padding: 60px 0; cursor: pointer; }
+.splash-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 28px;
+  cursor: pointer;
+  border-radius: 32px;
+  border: 1px solid rgba(223, 231, 240, 0.84);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 28px 60px -44px rgba(15, 23, 42, 0.44);
+  backdrop-filter: blur(18px);
+}
 .logo-circle { 
   width: 96px; height: 96px; border-radius: 50%; 
-  border: 1px solid #d4d4d8; /* 浅灰边框 */
+  border: 1px solid #d4dbe4;
   display: flex; justify-content: center; align-items: center; margin-bottom: 80px; 
-  font-size: 30px; color: #52525b; /* 深灰图标 */
+  font-size: 30px; color: #334155;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.28);
   transition: all 0.5s;
 }
 .splash-screen:hover .logo-circle { border-color: #27272a; color: #000; }
 
-.title { font-size: 36px; letter-spacing: 0.35em; margin-bottom: 24px; color: #18181b; font-family: serif; font-weight: bold; }
+.title { font-size: 36px; letter-spacing: 0.35em; margin-bottom: 24px; color: #18181b; font-family: 'Noto Serif SC', serif; font-weight: bold; }
 .subtitle { font-size: 12px; letter-spacing: 0.4em; color: #71717a; text-transform: uppercase; }
 .click-hint { margin-top: 140px; font-size: 10px; letter-spacing: 0.2em; color: #a1a1aa; animation: pulse 2s infinite; }
 
+.login-screen {
+  padding: 30px 28px 26px;
+  border-radius: 32px;
+  border: 1px solid rgba(223, 231, 240, 0.84);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 28px 60px -44px rgba(15, 23, 42, 0.44);
+  backdrop-filter: blur(18px);
+}
+
 /* Login Header */
 .header-area { text-align: center; margin-bottom: 80px; }
-.header-title { font-size: 24px; font-family: serif; margin-bottom: 16px; color: #18181b; font-weight: 600; }
+.header-title { font-size: 26px; font-family: 'Noto Serif SC', serif; margin-bottom: 16px; color: #18181b; font-weight: 600; }
 .header-subtitle { font-size: 10px; letter-spacing: 0.3em; color: #a1a1aa; text-transform: uppercase; }
 
 /* ------------------------------------
@@ -274,10 +297,9 @@ const handleLogin = async () => {
 .zen-btn {
   width: 100%;
   padding: 14px 0;
-  background: transparent;
-  /* 边框深灰 */
-  border: 1px solid #52525b; 
-  color: #52525b;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border: 1px solid #0f172a; 
+  color: #ffffff;
   border-radius: 9999px;
   font-size: 13px;
   letter-spacing: 0.5em;
@@ -288,9 +310,10 @@ const handleLogin = async () => {
 
 /* Hover 效果：青色文字 + 青色边框 */
 .zen-btn:hover { 
-  border-color: #06b6d4; 
-  color: #06b6d4; 
-  background-color: rgba(6, 182, 212, 0.05); /* 极淡背景增强交互感 */
+  border-color: #0f172a; 
+  color: #ffffff; 
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px -24px rgba(15, 23, 42, 0.54);
 }
 
 .btn-spacer { height: 25px; /* 硬间距保持 */ }
@@ -299,13 +322,13 @@ const handleLogin = async () => {
   width: 100%;
   background: transparent;
   border: none;
-  color: #a1a1aa;
+  color: #7b8a9b;
   font-size: 11px;
   letter-spacing: 0.4em;
   cursor: pointer;
   transition: color 0.3s;
 }
-.zen-sub-btn:hover { color: #06b6d4; }
+.zen-sub-btn:hover { color: #0f172a; }
 
 /* Footer */
 .footer {

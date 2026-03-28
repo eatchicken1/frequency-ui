@@ -1,5 +1,7 @@
 <template>
   <div class="layout-shell" :class="{ 'home-mode': isHomePage }">
+    <div v-if="showBackButton" class="layout-ambient layout-ambient-a"></div>
+    <div v-if="showBackButton" class="layout-ambient layout-ambient-b"></div>
     <header v-if="showBackButton" class="layout-topbar">
       <div class="layout-topbar-inner">
         <button class="brand-anchor" type="button" @click="goBackHome">
@@ -95,7 +97,11 @@ watch(
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f2f4f6;
+  position: relative;
+  background:
+    radial-gradient(1100px 620px at 0% 0%, rgba(110, 231, 183, 0.09), transparent 58%),
+    radial-gradient(1000px 680px at 100% 0%, rgba(96, 165, 250, 0.1), transparent 58%),
+    linear-gradient(180deg, #f6f8fb, #eef3f8);
   overflow: hidden;
 }
 
@@ -103,19 +109,45 @@ watch(
   --app-nav-height: 0px;
 }
 
+.layout-ambient {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(48px);
+  opacity: 0.56;
+}
+
+.layout-ambient-a {
+  width: 360px;
+  height: 360px;
+  top: -120px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(125, 173, 252, 0.22), transparent 70%);
+}
+
+.layout-ambient-b {
+  width: 420px;
+  height: 420px;
+  bottom: -180px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(120, 225, 208, 0.18), transparent 72%);
+}
+
 .layout-topbar {
   flex-shrink: 0;
   height: var(--app-nav-height);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.92);
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 2;
+  border-bottom: 1px solid rgba(221, 230, 240, 0.92);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px) saturate(135%);
 }
 
 .layout-topbar-inner {
   height: 100%;
-  max-width: 1480px;
+  max-width: var(--content-max);
   margin: 0 auto;
-  padding: 0 18px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -126,12 +158,15 @@ watch(
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .layout-content.route-scroll {
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding-bottom: 16px;
 }
 
 .layout-content.route-scroll::-webkit-scrollbar {
@@ -155,6 +190,11 @@ watch(
   color: #0f172a;
 }
 
+.brand-anchor:hover .brand-mark {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 18px 30px -22px rgba(15, 23, 42, 0.72);
+}
+
 .brand-mark {
   width: 34px;
   height: 34px;
@@ -165,6 +205,7 @@ watch(
   place-items: center;
   font-size: 16px;
   box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.8);
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .brand-copy {
@@ -208,6 +249,7 @@ watch(
   font-size: 18px;
   line-height: 1;
   color: #0f172a;
+  letter-spacing: -0.03em;
 }
 
 .topbar-actions {
@@ -232,34 +274,35 @@ watch(
   height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(226, 232, 240, 0.96);
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(221, 230, 240, 0.92);
+  background: rgba(255, 255, 255, 0.82);
   color: #475569;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .nav-pill:hover {
   transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.92);
+  border-color: rgba(148, 163, 184, 0.84);
   color: #0f172a;
+  box-shadow: 0 10px 20px -18px rgba(15, 23, 42, 0.34);
 }
 
 .nav-pill.active {
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   border-color: #0f172a;
   color: #ffffff;
-  box-shadow: 0 14px 28px -20px rgba(15, 23, 42, 0.72);
+  box-shadow: 0 18px 28px -22px rgba(15, 23, 42, 0.64);
 }
 
 .back-btn {
   height: 34px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(203, 213, 225, 0.96);
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 1px solid rgba(203, 213, 225, 0.92);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.94));
   color: #0f172a;
   font-size: 12px;
   font-weight: 800;
@@ -274,6 +317,7 @@ watch(
 .back-btn:hover {
   background: #ffffff;
   border-color: rgba(148, 163, 184, 0.96);
+  transform: translateY(-1px);
 }
 
 .back-icon {
