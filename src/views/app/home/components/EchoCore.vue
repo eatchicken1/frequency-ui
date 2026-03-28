@@ -3,11 +3,14 @@
     <div class="ec-shell">
       <div class="ec-card-top">
         <div class="ec-status-strip">
-          <span class="ec-status-pill">
-            <span class="ec-dot"></span>
-            <span>STANDBY LINKED</span>
-          </span>
-          <span class="ec-status-copy">编辑中的设定会直接作用于主页分身与对话风格</span>
+          <div class="ec-status-meta">
+            <span class="ec-status-pill" :class="{ dirty: hasPendingChanges }">
+              <span class="ec-dot"></span>
+              <span>{{ statusHeadline }}</span>
+            </span>
+            <span class="ec-mini-state">{{ activeTabLabel }}</span>
+          </div>
+          <span class="ec-status-copy">{{ statusCopy }}</span>
         </div>
       </div>
 
@@ -25,8 +28,11 @@
 
             <div class="ec-left-content">
               <div class="ec-toggle-row">
-                <button type="button" class="ec-mini-toggle" @click="setCurrentSections(true)">全部展开</button>
-                <button type="button" class="ec-mini-toggle" @click="setCurrentSections(false)">全部收起</button>
+                <span class="ec-toggle-label">{{ tab === 'persona' ? '调整人格与形象细节' : '管理上传资料与知识记忆' }}</span>
+                <div class="ec-toggle-actions">
+                  <button type="button" class="ec-mini-toggle" @click="setCurrentSections(true)">全部展开</button>
+                  <button type="button" class="ec-mini-toggle" @click="setCurrentSections(false)">全部收起</button>
+                </div>
               </div>
 
               <div v-if="tab === 'persona'" class="ec-pane">
@@ -37,7 +43,10 @@
                     :class="{ open: sectionOpen.persona }"
                     @click="toggleSection('persona')"
                   >
-                    <span class="ec-section-title">人格设定</span>
+                    <span class="ec-section-copy">
+                      <span class="ec-section-title">人格设定</span>
+                      <span class="ec-section-meta">{{ sectionSummary.persona }}</span>
+                    </span>
                     <span class="ec-section-arrow" :class="{ open: sectionOpen.persona }">⌄</span>
                   </button>
 
@@ -108,7 +117,10 @@
                     :class="{ open: sectionOpen.appearance }"
                     @click="toggleSection('appearance')"
                   >
-                    <span class="ec-section-title">形象设定</span>
+                    <span class="ec-section-copy">
+                      <span class="ec-section-title">形象设定</span>
+                      <span class="ec-section-meta">{{ sectionSummary.appearance }}</span>
+                    </span>
                     <span class="ec-section-arrow" :class="{ open: sectionOpen.appearance }">⌄</span>
                   </button>
 
@@ -192,7 +204,10 @@
                     :class="{ open: sectionOpen.knowledge }"
                     @click="toggleSection('knowledge')"
                   >
-                    <span class="ec-section-title">知识仓</span>
+                    <span class="ec-section-copy">
+                      <span class="ec-section-title">知识仓</span>
+                      <span class="ec-section-meta">{{ sectionSummary.knowledge }}</span>
+                    </span>
                     <span class="ec-section-arrow" :class="{ open: sectionOpen.knowledge }">⌄</span>
                   </button>
 
@@ -204,7 +219,8 @@
                       <div class="ec-upload-row">
                         <input ref="fileInput" class="ec-file" type="file" multiple @change="onPickFiles" />
                         <button class="ec-btn ec-btn-ghost" type="button" @click="triggerPick">选择文件</button>
-                        <span class="ec-upload-note">共 {{ mergedKnowledgeCount }} 份资料</span>
+                        <span class="ec-upload-note">当前知识库 {{ form.knowledgeCount }} 份</span>
+                        <span class="ec-upload-total">合计 {{ mergedKnowledgeCount }} 份资料</span>
                       </div>
 
                       <div v-if="files.length" class="ec-file-list">
@@ -215,6 +231,10 @@
                           </div>
                           <button type="button" class="ec-mini-btn" @click="removeFile(idx)">删除</button>
                         </div>
+                      </div>
+
+                      <div v-else class="ec-empty-files">
+                        暂无待上传文件，应用后会把资料并入分身知识库。
                       </div>
                     </div>
 
@@ -228,16 +248,45 @@
           </section>
 
           <aside class="ec-right">
-            <div class="ec-right-title">实时预览</div>
-            <EchoAvatar
-              :name="form.name"
-              :mood="form.mood"
-              :palette="form.palette"
-              :species="form.species"
-              :accessory="form.accessory"
-              :speaking="false"
-              :show-label="true"
-            />
+            <div class="ec-preview-head">
+              <div>
+                <p class="ec-right-kicker">REALTIME PREVIEW</p>
+                <div class="ec-right-title">实时预览</div>
+              </div>
+              <span class="ec-preview-pill" :class="{ dirty: hasPendingChanges }">
+                {{ hasPendingChanges ? '待应用' : '已同步' }}
+              </span>
+            </div>
+
+            <div class="ec-preview-stage">
+              <EchoAvatar
+                :name="form.name"
+                :mood="form.mood"
+                :palette="form.palette"
+                :species="form.species"
+                :accessory="form.accessory"
+                :speaking="false"
+                :show-label="true"
+              />
+            </div>
+
+            <div class="ec-preview-summary">
+              <div class="ec-summary-line">
+                <span>名称</span>
+                <strong>{{ form.name || '未命名 Echo' }}</strong>
+              </div>
+              <div class="ec-summary-line">
+                <span>擅长</span>
+                <strong>{{ form.expertise || '等待补充领域' }}</strong>
+              </div>
+              <div class="ec-summary-line">
+                <span>人格</span>
+                <strong>{{ form.speechStyle }} · {{ form.visibility }}</strong>
+              </div>
+              <p class="ec-summary-prompt">
+                {{ form.personaPrompt || '还没有填写人格 Prompt，当前会沿用默认分身语气。' }}
+              </p>
+            </div>
 
             <div class="ec-stat-grid">
               <div class="ec-stat">
@@ -262,10 +311,17 @@
       </div>
 
       <footer class="ec-footer">
-        <button class="ec-btn ec-btn-ghost" type="button" @click="onSave">保存草稿</button>
-        <button class="ec-btn ec-btn-primary" type="button" :disabled="applying" @click="onApply">
-          {{ applying ? '同步中...' : '应用到 STANDBY' }}
-        </button>
+        <p class="ec-footer-note">
+          {{ hasPendingChanges ? '有新的设定尚未同步到主页与对话上下文。' : '当前分身设定已在主页与对话中生效。' }}
+        </p>
+        <div class="ec-footer-actions">
+          <button class="ec-btn ec-btn-ghost" type="button" :disabled="!hasPendingChanges" @click="onSave">
+            {{ hasPendingChanges ? '保存草稿' : '草稿已保存' }}
+          </button>
+          <button class="ec-btn ec-btn-primary" type="button" :disabled="applying || !hasPendingChanges" @click="onApply">
+            {{ applying ? '同步中...' : hasPendingChanges ? '应用到 STANDBY' : '已同步到 STANDBY' }}
+          </button>
+        </div>
       </footer>
     </div>
   </div>
@@ -345,6 +401,45 @@ const mergedKnowledgeCount = computed(() => {
   const base = Math.max(0, Number(form.value.knowledgeCount || 0))
   return base + files.value.length
 })
+
+const profileSignature = (profile: EchoProfile) => [
+  profile.name,
+  profile.personaPrompt,
+  profile.speechStyle,
+  profile.expertise,
+  profile.visibility,
+  profile.mood,
+  profile.palette,
+  profile.species,
+  profile.accessory,
+  String(profile.knowledgeCount || 0)
+].join('||')
+
+const pickOptionLabel = <T extends { value: string; label: string }>(options: T[], value: string) => {
+  return options.find((item) => item.value === value)?.label || value
+}
+
+const hasPendingChanges = computed(() => {
+  return profileSignature(form.value) !== profileSignature(echoStore.profile) || files.value.length > 0
+})
+
+const statusHeadline = computed(() => (hasPendingChanges.value ? 'UNSYNCED DRAFT' : 'STANDBY LINKED'))
+const statusCopy = computed(() => {
+  if (hasPendingChanges.value) {
+    return '检测到未应用改动，保存或同步后会更新主页分身与对话语气。'
+  }
+  return '当前设定已与主页分身、聊天风格和知识库状态保持一致。'
+})
+
+const activeTabLabel = computed(() => (tab.value === 'persona' ? '分身设定' : '知识仓'))
+
+const sectionSummary = computed(() => ({
+  persona: `${form.value.speechStyle} · ${form.value.visibility}`,
+  appearance: `${pickOptionLabel(speciesOptions, form.value.species)} · ${pickOptionLabel(paletteOptions, form.value.palette)}`,
+  knowledge: files.value.length
+    ? `待上传 ${files.value.length} 份 · 合计 ${mergedKnowledgeCount.value} 份`
+    : `当前 ${mergedKnowledgeCount.value} 份资料`
+}))
 
 const resetWithProfile = () => {
   form.value = { ...echoStore.profile }
@@ -566,6 +661,13 @@ const onApply = async () => {
   gap: 14px;
 }
 
+.ec-status-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .ec-status-pill {
   display: inline-flex;
   align-items: center;
@@ -581,12 +683,35 @@ const onApply = async () => {
   letter-spacing: 0.14em;
 }
 
+.ec-status-pill.dirty {
+  border-color: #d5c5a2;
+  background: #fff8ec;
+}
+
 .ec-dot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
   background: #22c55e;
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+}
+
+.ec-status-pill.dirty .ec-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
+}
+
+.ec-mini-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #dbe3ec;
+  background: rgba(255, 255, 255, 0.72);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .ec-status-copy {
@@ -653,9 +778,23 @@ const onApply = async () => {
 
 .ec-toggle-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 2px 10px;
+}
+
+.ec-toggle-label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ec-toggle-actions {
+  display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 0 2px 10px;
 }
 
 .ec-mini-toggle {
@@ -691,6 +830,14 @@ const onApply = async () => {
   cursor: pointer;
 }
 
+.ec-section-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
 .ec-section-head.open {
   background: linear-gradient(180deg, #eef3f8, #e8eef6);
 }
@@ -699,6 +846,13 @@ const onApply = async () => {
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.04em;
+}
+
+.ec-section-meta {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .ec-section-arrow {
@@ -818,7 +972,7 @@ const onApply = async () => {
 .ec-upload-row {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px 10px;
 }
@@ -826,7 +980,13 @@ const onApply = async () => {
 .ec-upload-note {
   font-size: 12px;
   color: #64748b;
-  grid-column: 1 / -1;
+  font-weight: 700;
+}
+
+.ec-upload-total {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .ec-file {
@@ -867,6 +1027,18 @@ const onApply = async () => {
   margin: 2px 0 0;
   color: #64748b;
   font-size: 11px;
+}
+
+.ec-empty-files {
+  margin-top: 12px;
+  border: 1px dashed #d7e0ea;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fbfcfe;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 700;
 }
 
 .ec-mini-btn {
@@ -937,12 +1109,97 @@ const onApply = async () => {
 }
 
 .ec-right-title {
-  font-size: 12px;
+  font-size: 18px;
+  line-height: 1;
   font-weight: 900;
   color: #0f172a;
-  margin-bottom: 12px;
+}
+
+.ec-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ec-right-kicker {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.ec-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #d4dde8;
+  background: #ffffff;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ec-preview-pill.dirty {
+  border-color: #dcc89d;
+  background: #fff7e8;
+  color: #9a6700;
+}
+
+.ec-preview-stage {
+  margin-top: 14px;
+  border: 1px solid #d7dfe9;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 252, 0.96));
+  padding: 14px;
+}
+
+.ec-preview-summary {
+  margin-top: 12px;
+  border: 1px solid #d7dee8;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.ec-summary-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ec-summary-line span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ec-summary-line strong {
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.ec-summary-prompt {
+  margin: 0;
+  border-top: 1px solid #e6ebf2;
+  padding-top: 10px;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .ec-stat-grid {
@@ -976,9 +1233,23 @@ const onApply = async () => {
   border-top: 1px solid #e7ebf1;
   padding: 14px 22px 16px;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   background: linear-gradient(180deg, #f8fafc, #eef2f7);
+}
+
+.ec-footer-note {
+  margin: 0;
+  color: #526173;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ec-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .ec-btn {
@@ -1018,6 +1289,10 @@ const onApply = async () => {
     flex-direction: column;
   }
 
+  .ec-status-meta {
+    flex-wrap: wrap;
+  }
+
   .ec-status-copy {
     text-align: left;
   }
@@ -1042,7 +1317,8 @@ const onApply = async () => {
 
   .ec-footer {
     padding: 12px 14px 14px;
-    justify-content: stretch;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .ec-btn {
@@ -1050,9 +1326,13 @@ const onApply = async () => {
     min-width: 0;
   }
 
-  .ec-toggle-row {
-    justify-content: space-between;
-    padding-bottom: 8px;
+  .ec-footer-actions {
+    width: 100%;
+  }
+
+  .ec-upload-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 }
 </style>

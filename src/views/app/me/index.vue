@@ -4,18 +4,24 @@
     <div class="orb orb-b"></div>
 
     <section class="profile-hero">
-      <div class="avatar-wrap">
-        <div class="avatar">{{ getInitial(overview.nickname) }}</div>
-        <span class="badge">FREE PLAN</span>
-      </div>
-      <div class="profile-copy">
+      <div class="hero-copy">
         <p class="kicker">MY FREQUENCY</p>
         <h1>{{ overview.nickname || '频率用户' }}</h1>
-        <p>热度值 {{ overview.heat ?? 0 }} · 纯免费模式运行中</p>
+        <p class="hero-subtitle">查看你在 Frequency 的活跃概况、互动热度和当前免费模式下的成本保护状态。</p>
       </div>
-      <button class="refresh-btn" @click="loadOverview" :disabled="loading">
-        {{ loading ? '同步中...' : '刷新数据' }}
-      </button>
+      <div class="hero-side">
+        <div class="avatar-wrap">
+          <div class="avatar">{{ getInitial(overview.nickname) }}</div>
+          <span class="badge">FREE PLAN</span>
+        </div>
+        <div class="hero-pills">
+          <span class="hero-pill">HEAT {{ overview.heat ?? 0 }}</span>
+          <span class="hero-pill subtle">纯免费模式运行中</span>
+        </div>
+        <button class="refresh-btn" @click="loadOverview" :disabled="loading">
+          {{ loading ? '同步中...' : '刷新数据' }}
+        </button>
+      </div>
     </section>
 
     <div v-if="statusMessage" class="status" :class="`status-${statusType}`">
@@ -142,15 +148,25 @@ onMounted(loadOverview)
   position: relative;
   z-index: 1;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 22px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 248, 236, 0.82));
   backdrop-filter: blur(8px);
-  padding: 16px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 14px;
-  align-items: center;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   animation: entry 420ms ease;
+}
+
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-side {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
 }
 
 .avatar-wrap {
@@ -181,24 +197,54 @@ onMounted(loadOverview)
   letter-spacing: 0.08em;
 }
 
-.profile-copy .kicker {
+.kicker {
   margin: 0;
   font-size: 11px;
   letter-spacing: 0.16em;
   color: #b97a3d;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-.profile-copy h1 {
+.hero-copy h1 {
   margin: 4px 0 0;
   font-size: 30px;
   line-height: 1.1;
   color: var(--ink);
 }
 
-.profile-copy p {
-  margin: 6px 0 0;
+.hero-subtitle {
+  margin: 10px 0 0;
+  max-width: 520px;
   color: var(--ink-soft);
   font-size: 13px;
+  line-height: 1.6;
+}
+
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.hero-pill {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #efcfac;
+  background: rgba(255, 255, 255, 0.88);
+  color: #8b4e1d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.hero-pill.subtle {
+  background: #fff8ee;
+  color: #9f6633;
 }
 
 .refresh-btn {
@@ -336,16 +382,24 @@ onMounted(loadOverview)
   }
 
   .profile-hero {
-    grid-template-columns: 1fr;
-    justify-items: start;
+    flex-direction: column;
   }
 
   .avatar-wrap {
     justify-items: start;
   }
 
-  .profile-copy h1 {
+  .hero-copy h1 {
     font-size: 24px;
+  }
+
+  .hero-side {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .hero-pills {
+    justify-content: flex-start;
   }
 
   .refresh-btn {
@@ -393,19 +447,30 @@ onMounted(loadOverview)
     color: #ebb785;
   }
 
-  .profile-copy .kicker {
+  .kicker {
     color: #cc9b67;
   }
 
-  .profile-copy h1,
+  .hero-copy h1,
   .policy-card h2 {
     color: #ffd8b3;
   }
 
-  .profile-copy p,
+  .hero-subtitle,
   .metric-card h3,
   .policy-card li {
     color: #d0ab88;
+  }
+
+  .hero-pill {
+    background: rgba(47, 32, 20, 0.88);
+    border-color: #6b4426;
+    color: #ebb785;
+  }
+
+  .hero-pill.subtle {
+    background: #2a1c12;
+    color: #d8ae88;
   }
 
   .metric-card p {

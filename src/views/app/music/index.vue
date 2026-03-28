@@ -1,14 +1,21 @@
 <template>
   <div class="music-shell">
-    <header class="music-header">
-      <div>
+    <header class="music-hero">
+      <div class="hero-copy">
         <p class="kicker">MINI PLAYER</p>
         <h1>听歌</h1>
+        <p class="hero-subtitle">把本地音乐接入 Echo 的节奏场，让待机、聊天和播放保持同一条频率线。</p>
       </div>
-      <label class="import-btn">
-        导入歌曲
-        <input type="file" accept="audio/*" multiple @change="onPickFiles" />
-      </label>
+      <div class="hero-side">
+        <div class="hero-badges">
+          <span class="hero-pill">{{ currentTrack ? 'TRACK READY' : 'NO TRACK' }}</span>
+          <span class="hero-pill subtle">{{ tracks.length }} 首已接入</span>
+        </div>
+        <label class="import-btn">
+          导入歌曲
+          <input type="file" accept="audio/*" multiple @change="onPickFiles" />
+        </label>
+      </div>
     </header>
 
     <section class="now-playing">
@@ -122,29 +129,82 @@ const formatDuration = (seconds: number) => formatTime(seconds)
   min-height: 100%;
   max-width: 760px;
   margin: 0 auto;
-  padding: 20px 14px;
+  padding: 20px 14px 24px;
   display: grid;
   gap: 12px;
   color: #17233b;
   font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
 }
 
-.music-header {
+.music-hero {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #dbe4f0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(244, 249, 255, 0.86));
+  box-shadow: 0 24px 48px -36px rgba(23, 35, 59, 0.32);
+}
+
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-side {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .kicker {
   margin: 0;
   font-size: 11px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   color: #6e7d95;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-.music-header h1 {
+.music-hero h1 {
   margin: 4px 0 0;
-  font-size: 28px;
+  font-size: 30px;
+  line-height: 1.04;
+}
+
+.hero-subtitle {
+  margin: 10px 0 0;
+  max-width: 520px;
+  color: #61738f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #d8e2ef;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.hero-pill.subtle {
+  background: #f4f7fb;
+  color: #5b6b82;
 }
 
 .import-btn {
@@ -287,8 +347,25 @@ const formatDuration = (seconds: number) => formatTime(seconds)
     color: #dfebff;
   }
 
+  .music-hero {
+    background: linear-gradient(135deg, rgba(19, 31, 51, 0.92), rgba(16, 28, 45, 0.94));
+    border-color: #304867;
+    box-shadow: 0 24px 48px -36px rgba(0, 0, 0, 0.52);
+  }
+
   .kicker {
     color: #9bb0d2;
+  }
+
+  .hero-subtitle,
+  .hero-pill.subtle {
+    color: #9cb0cf;
+  }
+
+  .hero-pill {
+    background: #162743;
+    border-color: #36557d;
+    color: #dce8ff;
   }
 
   .import-btn,
@@ -330,6 +407,26 @@ const formatDuration = (seconds: number) => formatTime(seconds)
   .track-row.active {
     background: #1d3354;
     border-color: #5c96ee;
+  }
+}
+
+@media (max-width: 720px) {
+  .music-hero {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .hero-side {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .hero-badges {
+    justify-content: flex-start;
+  }
+
+  .import-btn {
+    text-align: center;
   }
 }
 </style>

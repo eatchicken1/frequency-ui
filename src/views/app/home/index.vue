@@ -688,7 +688,7 @@ const formatTime = (seconds: number) => {
 
 <style scoped>
 .app-root {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background:

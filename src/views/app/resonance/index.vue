@@ -4,26 +4,22 @@
     <div class="ambient ambient-b"></div>
 
     <header class="hero-card">
-      <div class="hero-main">
+      <div class="hero-copy">
         <p class="hero-kicker">RESONANCE NETWORK</p>
         <h1>同频发现与社交动态</h1>
         <p class="hero-subtitle">
           先找到与你频率接近的人，再通过动态建立真实互动。
         </p>
       </div>
-      <div class="hero-metrics">
-        <article class="metric">
-          <span>推荐用户</span>
-          <strong>{{ recommendedUsers.length }}</strong>
-        </article>
-        <article class="metric">
-          <span>动态条数</span>
-          <strong>{{ feed.length }}</strong>
-        </article>
-        <article class="metric">
-          <span>今日交互</span>
-          <strong>{{ totalInteractions }}</strong>
-        </article>
+      <div class="hero-side">
+        <div class="hero-pills">
+          <span class="hero-pill">推荐 {{ recommendedUsers.length }}</span>
+          <span class="hero-pill">动态 {{ feed.length }}</span>
+          <span class="hero-pill subtle">今日交互 {{ totalInteractions }}</span>
+        </div>
+        <button class="hero-action" @click="loadAll" :disabled="loading">
+          {{ loading ? '刷新中' : '刷新同频网络' }}
+        </button>
       </div>
     </header>
 
@@ -353,10 +349,15 @@ onMounted(loadAll)
   margin-bottom: 14px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(244, 248, 255, 0.78));
   backdrop-filter: blur(8px);
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
   animation: rise-in 420ms ease;
+}
+
+.hero-copy {
+  min-width: 0;
 }
 
 .hero-kicker {
@@ -367,7 +368,7 @@ onMounted(loadAll)
   font-weight: 600;
 }
 
-.hero-main h1 {
+.hero-copy h1 {
   margin: 0;
   font-size: 26px;
   line-height: 1.15;
@@ -381,30 +382,61 @@ onMounted(loadAll)
   line-height: 1.5;
 }
 
-.hero-metrics {
+.hero-side {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: end;
   gap: 10px;
 }
 
-.metric {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 10px;
-  background: #fff;
-  display: grid;
-  gap: 6px;
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.metric span {
-  font-size: 11px;
-  color: #6b83a7;
-}
-
-.metric strong {
-  font-size: 24px;
-  line-height: 1;
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #d7e4f6;
+  background: #ffffff;
   color: #183154;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.hero-pill.subtle {
+  background: #f4f8ff;
+  color: #466086;
+}
+
+.hero-action {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #c7daf5;
+  background: #ffffff;
+  color: #204976;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.hero-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px -12px #1b3f6f;
+}
+
+.hero-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .status-bar {
@@ -778,16 +810,21 @@ onMounted(loadAll)
   }
 
   .hero-card {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     padding: 16px;
   }
 
-  .hero-main h1 {
+  .hero-copy h1 {
     font-size: 22px;
   }
 
-  .hero-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .hero-side {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .hero-pills {
+    justify-content: flex-start;
   }
 
   .user-card {
@@ -833,7 +870,6 @@ onMounted(loadAll)
     border-color: #2a3c59;
   }
 
-  .metric,
   .user-card,
   .compose-box,
   .moment-card {
@@ -841,8 +877,7 @@ onMounted(loadAll)
     border-color: #2c4161;
   }
 
-  .metric strong,
-  .hero-main h1,
+  .hero-copy h1,
   .section-head h2,
   .user-meta h3,
   .author-meta strong {
@@ -851,7 +886,6 @@ onMounted(loadAll)
 
   .hero-kicker,
   .hero-subtitle,
-  .metric span,
   .user-meta p,
   .user-meta small,
   .author-meta span,
@@ -861,6 +895,23 @@ onMounted(loadAll)
   .empty-comment,
   .compose-footer {
     color: #9ab0d7;
+  }
+
+  .hero-pill {
+    background: #16253b;
+    border-color: #2c4161;
+    color: #e4edff;
+  }
+
+  .hero-pill.subtle {
+    background: #132239;
+    color: #9ab0d7;
+  }
+
+  .hero-action {
+    background: #15253c;
+    border-color: #345178;
+    color: #c8dcff;
   }
 
   .user-avatar {
