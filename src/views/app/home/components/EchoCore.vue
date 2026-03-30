@@ -266,7 +266,10 @@
                 :species="form.species"
                 :accessory="form.accessory"
                 :speaking="false"
+                mode="idle"
+                look-direction="center"
                 :show-label="true"
+                :small="true"
               />
             </div>
 
@@ -381,18 +384,26 @@ const paletteOptions: PaletteOption[] = [
   { value: 'mint', label: '薄荷' },
   { value: 'sunset', label: '落日' },
   { value: 'aurora', label: '极光' },
-  { value: 'mono', label: '灰阶' }
+  { value: 'mono', label: '灰阶' },
+  { value: 'rose', label: '玫瑰' },
+  { value: 'forest', label: '森林' },
+  { value: 'neon', label: '霓虹' }
 ]
 const speciesOptions: SpeciesOption[] = [
   { value: 'spark', label: '火花体' },
   { value: 'cat', label: '猫猫体' },
   { value: 'fox', label: '狐灵体' },
-  { value: 'orb', label: '球灵体' }
+  { value: 'orb', label: '球灵体' },
+  { value: 'bunny', label: '兔兔体' },
+  { value: 'bear', label: '熊熊体' }
 ]
 const accessoryOptions: AccessoryOption[] = [
   { value: 'headset', label: '耳机' },
   { value: 'star', label: '星标' },
   { value: 'halo', label: '光环' },
+  { value: 'glasses', label: '眼镜' },
+  { value: 'scarf', label: '围巾' },
+  { value: 'leaf', label: '叶饰' },
   { value: 'none', label: '无' }
 ]
 
@@ -1150,7 +1161,11 @@ const onApply = async () => {
   border: 1px solid #e1e7ef;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.92);
-  padding: 12px;
+  min-height: 212px;
+  padding: 14px 12px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
 
 .ec-preview-summary {

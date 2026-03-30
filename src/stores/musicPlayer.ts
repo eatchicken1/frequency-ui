@@ -20,13 +20,82 @@ export const useMusicPlayerStore = defineStore('musicPlayer', () => {
   const duration = ref(0)
   const seekPercent = ref(0)
   const volumePercent = ref(70)
+  const energyLevel = ref(0)
   const remoteBlobCache = new Map<string, string>()
+  let audioContext: AudioContext | null = null
+  let analyser: AnalyserNode | null = null
+  let sourceNode: MediaElementAudioSourceNode | null = null
+  let analyserBuffer: Uint8Array | null = null
+  let analyserFrame = 0
 
   const currentTrack = computed(() => tracks.value[activeIndex.value] || null)
 
   const audio = new Audio()
   audio.preload = 'metadata'
   audio.volume = volumePercent.value / 100
+
+  const stopEnergyTracking = () => {
+    if (analyserFrame) {
+      cancelAnimationFrame(analyserFrame)
+      analyserFrame = 0
+    }
+    energyLevel.value = 0
+  }
+
+  const ensureAudioAnalyser = async () => {
+    if (typeof window === 'undefined') return
+    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    if (!AudioContextCtor) return
+
+    if (!audioContext) {
+      audioContext = new AudioContextCtor()
+      analyser = audioContext.createAnalyser()
+      analyser.fftSize = 128
+      analyser.smoothingTimeConstant = 0.72
+      analyserBuffer = new Uint8Array(analyser.frequencyBinCount)
+
+      sourceNode = audioContext.createMediaElementSource(audio)
+      sourceNode.connect(analyser)
+      analyser.connect(audioContext.destination)
+    }
+
+    if (audioContext.state === 'suspended') {
+      try {
+        await audioContext.resume()
+      } catch {
+        // ignore context resume failures
+      }
+    }
+  }
+
+  const startEnergyTracking = async () => {
+    await ensureAudioAnalyser()
+    if (!analyser || !analyserBuffer || analyserFrame) return
+
+    const tick = () => {
+      if (!analyser || !analyserBuffer) {
+        stopEnergyTracking()
+        return
+      }
+
+      analyser.getByteFrequencyData(analyserBuffer)
+      let weightedSum = 0
+      let weightTotal = 0
+
+      for (let index = 0; index < analyserBuffer.length; index += 1) {
+        const weight = index < analyserBuffer.length * 0.45 ? 1.35 : 0.75
+        weightedSum += analyserBuffer[index] * weight
+        weightTotal += weight
+      }
+
+      const normalized = weightTotal ? weightedSum / weightTotal / 255 : 0
+      const volumeFactor = Math.max(0.35, volumePercent.value / 100)
+      energyLevel.value = clamp(normalized * volumeFactor * 1.45, 0, 1)
+      analyserFrame = requestAnimationFrame(tick)
+    }
+
+    analyserFrame = requestAnimationFrame(tick)
+  }
 
   const syncDuration = () => {
     const value = audio.duration || currentTrack.value?.duration || 0
@@ -51,10 +120,12 @@ export const useMusicPlayerStore = defineStore('musicPlayer', () => {
 
   audio.addEventListener('play', () => {
     playing.value = true
+    void startEnergyTracking()
   })
 
   audio.addEventListener('pause', () => {
     playing.value = false
+    stopEnergyTracking()
   })
 
   const resolveRemoteTrackUrl = async (track: Track) => {
@@ -82,6 +153,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', () => {
       currentTime.value = 0
       duration.value = 0
       seekPercent.value = 0
+      stopEnergyTracking()
       return
     }
 
@@ -257,6 +329,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', () => {
     duration,
     seekPercent,
     volumePercent,
+    energyLevel,
     addTracksFromFiles,
     togglePlay,
     playAt,

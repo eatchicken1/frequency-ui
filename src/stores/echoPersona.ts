@@ -2,9 +2,9 @@
 import { defineStore } from 'pinia'
 
 export type EchoMood = 'calm' | 'happy' | 'curious' | 'focus'
-export type EchoPalette = 'mint' | 'sunset' | 'aurora' | 'mono'
-export type EchoSpecies = 'spark' | 'cat' | 'fox' | 'orb'
-export type EchoAccessory = 'headset' | 'star' | 'halo' | 'none'
+export type EchoPalette = 'mint' | 'sunset' | 'aurora' | 'mono' | 'rose' | 'forest' | 'neon'
+export type EchoSpecies = 'spark' | 'cat' | 'fox' | 'orb' | 'bunny' | 'bear'
+export type EchoAccessory = 'headset' | 'star' | 'halo' | 'glasses' | 'scarf' | 'leaf' | 'none'
 
 export type EchoProfile = {
   name: string
@@ -35,9 +35,9 @@ const defaultProfile: EchoProfile = {
 }
 
 const moodWhitelist: EchoMood[] = ['calm', 'happy', 'curious', 'focus']
-const paletteWhitelist: EchoPalette[] = ['mint', 'sunset', 'aurora', 'mono']
-const speciesWhitelist: EchoSpecies[] = ['spark', 'cat', 'fox', 'orb']
-const accessoryWhitelist: EchoAccessory[] = ['headset', 'star', 'halo', 'none']
+const paletteWhitelist: EchoPalette[] = ['mint', 'sunset', 'aurora', 'mono', 'rose', 'forest', 'neon']
+const speciesWhitelist: EchoSpecies[] = ['spark', 'cat', 'fox', 'orb', 'bunny', 'bear']
+const accessoryWhitelist: EchoAccessory[] = ['headset', 'star', 'halo', 'glasses', 'scarf', 'leaf', 'none']
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 

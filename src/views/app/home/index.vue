@@ -17,7 +17,7 @@
               <span class="icon-glyph" aria-hidden="true">⚡</span>
               <span>唤醒 Runtime</span>
             </button>
-            <button class="overview-btn icon-btn" @click="isEchoCoreActive = true">
+            <button class="overview-btn icon-btn" @click="openWorkshop">
               <span class="icon-glyph" aria-hidden="true">🧠</span>
               <span>打开 Workshop</span>
             </button>
@@ -158,7 +158,10 @@
                   :palette="profile.palette"
                   :species="profile.species"
                   :accessory="profile.accessory"
-                  :speaking="isStreaming || playing"
+                  :speaking="avatarMode === 'replying'"
+                  :mode="avatarMode"
+                  :look-direction="avatarLookDirection"
+                  :music-energy="energyLevel"
                   :show-label="false"
                 />
               </div>
@@ -167,11 +170,6 @@
                 <div class="stage-footer-copy">
                   <strong>{{ profile.name }}</strong>
                   <span>{{ profile.speechStyle }} · {{ currentTrack ? currentTrack.name : '静默待机中' }}</span>
-                </div>
-
-                <div class="stage-footer-actions">
-                  <button class="stage-mini-action" @click="openCore">Runtime</button>
-                  <button class="stage-mini-action ghost" @click="isEchoCoreActive = true">Workshop</button>
                 </div>
               </div>
             </div>
@@ -191,13 +189,13 @@
                 <p class="kicker">HOT FEATURES</p>
                 <h3>热门功能</h3>
               </div>
-              <span class="tag">{{ hotFeatures.length || 0 }}项</span>
+              <span class="tag">{{ displayedHotFeatures.length || 0 }}项</span>
             </div>
 
             <div class="panel-body right-body">
               <div class="portal-grid">
                 <button
-                  v-for="item in hotFeatures"
+                  v-for="item in displayedHotFeatures"
                   :key="item.featureCode"
                   class="portal-tile"
                   type="button"
@@ -217,12 +215,12 @@
                 </button>
               </div>
 
-              <div v-if="!hotFeatures.length" class="portal-empty">
+              <div v-if="!displayedHotFeatures.length" class="portal-empty">
                 <strong>热门功能正在计算中</strong>
                 <span>稍后会根据全站访问热度自动补齐。</span>
               </div>
 
-              <button class="portal-featured" type="button" @click="openHotPreset('echo-core')">
+              <button v-if="showFeaturedWorkshop" class="portal-featured" type="button" @click="openHotPreset('echo-core')">
                 <div class="portal-featured-copy">
                   <div class="portal-featured-title">
                     <strong>EchoCore Workshop</strong>
@@ -245,7 +243,7 @@
                 <p class="kicker">RESONANCE DECK</p>
                 <h3>{{ currentTrack?.name || '情绪配乐与今日节奏' }}</h3>
               </div>
-              <button class="dock-jump" @click="router.push('/app/music')">音乐库</button>
+              <button class="dock-jump" @click="openMusicLibrary">音乐库</button>
             </div>
 
             <div class="panel-body resonance-body">
@@ -271,7 +269,7 @@
                   <strong>当前没有接入配乐</strong>
                   <span>添加一首歌，让 Echo 的待机区和聊天区都带上节奏感。</span>
                 </div>
-                <button class="dock-btn primary icon-btn" @click="router.push('/app/music')">
+                <button class="dock-btn primary icon-btn" @click="openMusicLibrary">
                   <span class="icon-glyph" aria-hidden="true">♫</span>
                   <span>添加配乐</span>
                 </button>
@@ -344,6 +342,9 @@ type HotFeatureItem = {
   heatScore?: number
 }
 
+type AvatarMode = 'idle' | 'listening' | 'thinking' | 'replying' | 'grooving'
+type AvatarLookDirection = 'center' | 'left' | 'right' | 'up-left' | 'up-right' | 'down-left' | 'down-right'
+
 const hotFeatureFallback: HotFeatureItem[] = [
   { featureCode: 'home', featureName: '当下', featureDesc: '返回当前主界面', actionType: 'route', actionValue: '/app/home', icon: '•' },
   { featureCode: 'resonance', featureName: '共鸣', featureDesc: '查看频率匹配与推荐', actionType: 'route', actionValue: '/app/resonance', icon: '💕' },
@@ -360,13 +361,40 @@ const hotFeatures = ref<HotFeatureItem[]>([...hotFeatureFallback])
 const echoStore = useEchoPersonaStore()
 const musicPlayer = useMusicPlayerStore()
 const { profile, statusText } = storeToRefs(echoStore)
-const { currentTrack, currentTime, duration, playing, seekPercent, tracks } = storeToRefs(musicPlayer)
+const { currentTrack, currentTime, duration, playing, seekPercent, tracks, energyLevel } = storeToRefs(musicPlayer)
 
 const quickInteractions = computed(() => [
   { label: '打个招呼', text: `${profile.value.name}，先和我打个招呼吧。` },
   { label: '今日建议', text: `以${profile.value.speechStyle}风格，给我一个今天可执行的提升建议。` },
   { label: '节奏聊天', text: '结合当前音乐氛围，陪我聊 1 分钟，语气轻松一点。' }
 ])
+
+const displayedHotFeatures = computed(() => {
+  const seen = new Set<string>()
+  return hotFeatures.value.filter((item) => {
+    const featureCode = String(item.featureCode || '').trim().toLowerCase()
+    const actionValue = String(item.actionValue || '').trim().toLowerCase()
+    const featureName = String(item.featureName || '').trim().toLowerCase()
+
+    if (featureCode === 'home' || actionValue === '/app/home') {
+      return false
+    }
+
+    const uniqueKey = actionValue || `${featureCode}:${featureName}`
+    if (!uniqueKey) return true
+    if (seen.has(uniqueKey)) return false
+    seen.add(uniqueKey)
+    return true
+  })
+})
+
+const showFeaturedWorkshop = computed(() => {
+  return !displayedHotFeatures.value.some((item) => {
+    const featureCode = String(item.featureCode || '').toLowerCase()
+    const actionValue = String(item.actionValue || '').toLowerCase()
+    return featureCode.includes('echo') || actionValue === 'open-echo-core'
+  })
+})
 
 const dailyMissions = computed(() => [
   {
@@ -388,6 +416,9 @@ const userInput = ref('')
 const isInputFocused = ref(false)
 const messages = ref<ChatMessage[]>([])
 const isStreaming = ref(false)
+const hasReplyText = ref(false)
+const avatarLookDirection = ref<AvatarLookDirection>('center')
+let avatarLookTimer: number | null = null
 
 const chatScrollRef = ref<HTMLElement | null>(null)
 const streamController = ref<AbortController | null>(null)
@@ -402,6 +433,14 @@ const hasMoreHistory = ref(true)
 const seekPercentProxy = computed({
   get: () => seekPercent.value,
   set: (value: number) => musicPlayer.setSeekPercent(value)
+})
+
+const avatarMode = computed<AvatarMode>(() => {
+  if (isStreaming.value && hasReplyText.value) return 'replying'
+  if (isStreaming.value) return 'thinking'
+  if (isInputFocused.value) return 'listening'
+  if (playing.value && energyLevel.value > 0.04) return 'grooving'
+  return 'idle'
 })
 
 const toTimestamp = (value?: string | number | null) => {
@@ -558,6 +597,10 @@ onBeforeUnmount(() => {
   if (el) el.removeEventListener('scroll', handleScroll)
   stopCurrentTyping?.()
   if (streamController.value) streamController.value.abort()
+  if (avatarLookTimer != null) {
+    window.clearTimeout(avatarLookTimer)
+    avatarLookTimer = null
+  }
 })
 
 const scrollToBottom = async () => {
@@ -578,11 +621,28 @@ watch(
 )
 
 const openCore = () => {
+  cueAvatarLook('up-left')
   isCoreActive.value = true
+}
+
+const openWorkshop = () => {
+  cueAvatarLook('up-left')
+  isEchoCoreActive.value = true
 }
 
 const closeCore = () => {
   isCoreActive.value = false
+}
+
+const cueAvatarLook = (direction: AvatarLookDirection, duration = 1400) => {
+  avatarLookDirection.value = direction
+  if (avatarLookTimer != null) {
+    window.clearTimeout(avatarLookTimer)
+  }
+  avatarLookTimer = window.setTimeout(() => {
+    avatarLookDirection.value = 'center'
+    avatarLookTimer = null
+  }, duration)
 }
 
 const loadHotFeatures = async () => {
@@ -631,16 +691,22 @@ const openHotPreset = async (featureCode: string) => {
 }
 
 const handleHotFeatureClick = async (item: HotFeatureItem) => {
+  cueAvatarLook('right')
   await reportHotFeatureClick(item)
   const actionType = String(item.actionType || 'route')
   const actionValue = String(item.actionValue || '')
   if (actionType === 'action' || actionValue === 'open-echo-core') {
-    isEchoCoreActive.value = true
+    openWorkshop()
     return
   }
   if (actionValue) {
     router.push(actionValue)
   }
+}
+
+const openMusicLibrary = () => {
+  cueAvatarLook('right', 1200)
+  router.push('/app/music')
 }
 
 const getFeatureIcon = (item: HotFeatureItem) => {
@@ -661,9 +727,11 @@ const stopStreaming = () => {
   streamController.value = null
   stopCurrentTyping = null
   isStreaming.value = false
+  hasReplyText.value = false
 }
 
 const sendQuickMessage = async (text: string) => {
+  cueAvatarLook('left', 900)
   userInput.value = text
   await sendMessage()
 }
@@ -672,6 +740,7 @@ const sendMessage = async () => {
   const content = userInput.value.trim()
   if (!content || isStreaming.value) return
 
+  cueAvatarLook('left', 1200)
   stopCurrentTyping?.()
   stopCurrentTyping = null
 
@@ -695,6 +764,7 @@ const sendMessage = async () => {
   const controller = new AbortController()
   streamController.value = controller
   isStreaming.value = true
+  hasReplyText.value = false
 
   let fullText = ''
   let displayIndex = 0
@@ -740,6 +810,9 @@ const sendMessage = async () => {
       signal: controller.signal,
       onMessage: (chunk: string) => {
         fullText += chunk
+        if (fullText.trim()) {
+          hasReplyText.value = true
+        }
         if (!typingActive) {
           typingActive = true
           typeNextChar()
@@ -754,6 +827,7 @@ const sendMessage = async () => {
         streamController.value = null
         stopCurrentTyping = null
         isStreaming.value = false
+        hasReplyText.value = false
       },
       onComplete: () => {
         stopTyping()
@@ -764,6 +838,7 @@ const sendMessage = async () => {
         streamController.value = null
         stopCurrentTyping = null
         isStreaming.value = false
+        hasReplyText.value = false
       }
     })
   } catch (err: any) {
@@ -775,28 +850,32 @@ const sendMessage = async () => {
     streamController.value = null
     stopCurrentTyping = null
     isStreaming.value = false
+    hasReplyText.value = false
   }
 }
 
 const toggleMusicFromDock = () => {
+  cueAvatarLook('right', 1200)
   if (!currentTrack.value) {
-    router.push('/app/music')
+    openMusicLibrary()
     return
   }
   void musicPlayer.togglePlay()
 }
 
 const prevTrackFromDock = () => {
+  cueAvatarLook('right', 900)
   if (!tracks.value.length) {
-    router.push('/app/music')
+    openMusicLibrary()
     return
   }
   void musicPlayer.prevTrack()
 }
 
 const nextTrackFromDock = () => {
+  cueAvatarLook('right', 900)
   if (!tracks.value.length) {
-    router.push('/app/music')
+    openMusicLibrary()
     return
   }
   void musicPlayer.nextTrack()
@@ -957,9 +1036,10 @@ const formatTime = (seconds: number) => {
 }
 
 .overview-btn.primary {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #fff;
-  border-color: #0f172a;
+  background: linear-gradient(135deg, #e8f1ff, #dce9fb);
+  color: #173a66;
+  border-color: rgba(162, 184, 216, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .overview-rail strong {
@@ -1267,8 +1347,8 @@ const formatTime = (seconds: number) => {
   font-size: 11px;
   font-weight: 800;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #fff;
+  background: linear-gradient(135deg, #dbe8fb, #cbdcf6);
+  color: #1d467b;
 }
 
 .chat-row.ai .chat-avatar {
@@ -1310,10 +1390,11 @@ const formatTime = (seconds: number) => {
 }
 
 .chat-row.user .chat-text {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #fff;
+  background: linear-gradient(135deg, #e9f1ff, #dce8fb);
+  color: #183a63;
   border-bottom-right-radius: 6px;
   border-bottom-left-radius: 14px;
+  border-color: rgba(205, 217, 235, 0.96);
 }
 
 .chat-input {
@@ -1358,9 +1439,9 @@ const formatTime = (seconds: number) => {
 
 .chat-send,
 .chat-stop {
-  border: none;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #fff;
+  border: 1px solid rgba(174, 190, 213, 0.92);
+  background: linear-gradient(135deg, #e7f0ff, #d9e8fb);
+  color: #173a66;
   padding: 0 13px;
   border-radius: 12px;
   font-size: 12px;
@@ -1370,7 +1451,9 @@ const formatTime = (seconds: number) => {
 }
 
 .chat-stop {
-  background: linear-gradient(135deg, #475569, #64748b);
+  background: linear-gradient(135deg, #f8fafd, #e9eef6);
+  color: #516277;
+  border-color: rgba(201, 211, 225, 0.96);
 }
 
 .chat-send:disabled {
@@ -1449,9 +1532,9 @@ const formatTime = (seconds: number) => {
 }
 
 .stage-chip.primary {
-  background: rgba(15, 23, 42, 0.92);
-  color: #fff;
-  border-color: rgba(15, 23, 42, 0.92);
+  background: linear-gradient(135deg, #e7f1ff, #dae8fb);
+  color: #20466f;
+  border-color: rgba(166, 187, 218, 0.9);
 }
 
 .stage-footer {
@@ -1490,30 +1573,6 @@ const formatTime = (seconds: number) => {
   line-height: 1.45;
 }
 
-.stage-footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stage-mini-action {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid #0f172a;
-  background: #0f172a;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.stage-mini-action.ghost {
-  background: rgba(255, 255, 255, 0.92);
-  color: #0f172a;
-  border-color: rgba(207, 218, 231, 0.96);
-}
-
 .core-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1542,7 +1601,6 @@ const formatTime = (seconds: number) => {
   font-size: 13px;
 }
 
-.stage-mini-action:hover,
 .dock-jump:hover,
 .dock-btn:hover,
 .btn-close:hover {
@@ -1614,8 +1672,9 @@ const formatTime = (seconds: number) => {
   min-height: 24px;
   padding: 0 9px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.92);
-  color: #fff;
+  background: linear-gradient(135deg, #e7f0ff, #dae7fa);
+  color: #21446a;
+  border: 1px solid rgba(168, 188, 216, 0.9);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1670,9 +1729,9 @@ const formatTime = (seconds: number) => {
 }
 
 .dock-btn.primary {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  border-color: #0f172a;
-  color: #fff;
+  background: linear-gradient(135deg, #e7f0ff, #d8e7fa);
+  border-color: rgba(167, 186, 214, 0.92);
+  color: #173a66;
 }
 
 .dock-empty {
@@ -1910,7 +1969,7 @@ const formatTime = (seconds: number) => {
 }
 
 .portal-link-text.featured {
-  color: #0f172a;
+  color: #35567d;
 }
 
 .portal-empty {
@@ -2122,12 +2181,6 @@ const formatTime = (seconds: number) => {
     right: 12px;
     bottom: 12px;
     padding: 10px 12px;
-  }
-
-  .stage-footer-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
   }
 
   .dock-empty {
